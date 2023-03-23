@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "chain": "hardhat node",
     "compile": "hardhat compile",
+    "deploy": "hardhat deploy --network localhost",
     "test": "hardhat test ./test/unit/*.spec.ts --network hardhat",
     "test-staging": "hardhat test ./test/staging/*.spec.ts --network sepolia",
     "lint": "solhint 'contracts/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
     "format": "prettier --write .",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js",
-    "fuzzing": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox"
+    "fuzzing": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox",
+    "clean": "hardhat clean"
   },
   "license": "MIT",
   "devDependencies": {
