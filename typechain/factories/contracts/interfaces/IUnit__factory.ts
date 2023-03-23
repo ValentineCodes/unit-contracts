@@ -74,7 +74,7 @@ const _abi = [
         type: "uint256",
       },
     ],
-    name: "buyItem",
+    name: "buyItemWithToken",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",

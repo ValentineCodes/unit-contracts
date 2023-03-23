@@ -15,6 +15,7 @@ error Unit__InsufficientAmount();
 error Unit__InvalidItemToken(address requestedToken, address actualToken);
 error Unit__TokenTransferFailed(address to, address token, uint256 amount);
 error Unit__ItemDeadlineReached();
+error Unit__CannotBuyOwnNFT();
 
 library BuyLogic {
     event ItemBought(
@@ -48,6 +49,8 @@ library BuyLogic {
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
             revert Unit__ItemDeadlineReached();
 
+        if (listing.seller == msg.sender) revert Unit__CannotBuyOwnNFT();
+
         delete s_listings[nft][tokenId];
 
         IERC721(nft).safeTransferFrom(listing.seller, msg.sender, tokenId);
@@ -80,6 +83,8 @@ library BuyLogic {
         // Item has deadline and it has been reached
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
             revert Unit__ItemDeadlineReached();
+
+        if (listing.seller == msg.sender) revert Unit__CannotBuyOwnNFT();
 
         delete s_listings[nft][tokenId];
 

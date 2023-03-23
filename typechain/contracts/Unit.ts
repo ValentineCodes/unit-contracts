@@ -75,7 +75,7 @@ export interface UnitInterface extends utils.Interface {
     "MIN_BID_DEADLINE()": FunctionFragment;
     "acceptOffer(address,address,uint256)": FunctionFragment;
     "buyItem(address,uint256)": FunctionFragment;
-    "buyItem(address,uint256,address,uint256)": FunctionFragment;
+    "buyItemWithToken(address,uint256,address,uint256)": FunctionFragment;
     "createOffer(address,uint256,address,uint256,uint256)": FunctionFragment;
     "disableAuction(address,uint256,uint256)": FunctionFragment;
     "enableAuction(address,uint256,uint256)": FunctionFragment;
@@ -102,8 +102,8 @@ export interface UnitInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "MIN_BID_DEADLINE"
       | "acceptOffer"
-      | "buyItem(address,uint256)"
-      | "buyItem(address,uint256,address,uint256)"
+      | "buyItem"
+      | "buyItemWithToken"
       | "createOffer"
       | "disableAuction"
       | "enableAuction"
@@ -139,11 +139,11 @@ export interface UnitInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "buyItem(address,uint256)",
+    functionFragment: "buyItem",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "buyItem(address,uint256,address,uint256)",
+    functionFragment: "buyItemWithToken",
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
@@ -283,12 +283,9 @@ export interface UnitInterface extends utils.Interface {
     functionFragment: "acceptOffer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "buyItem", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "buyItem(address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "buyItem(address,uint256,address,uint256)",
+    functionFragment: "buyItemWithToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -409,13 +406,13 @@ export interface Unit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -449,14 +446,14 @@ export interface Unit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -562,13 +559,13 @@ export interface Unit extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "buyItem(address,uint256)"(
+  buyItem(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "buyItem(address,uint256,address,uint256)"(
+  buyItemWithToken(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
     token: PromiseOrValue<string>,
@@ -602,14 +599,14 @@ export interface Unit extends BaseContract {
   extendItemDeadline(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
-    offset: PromiseOrValue<BigNumberish>,
+    extraTime: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   extendOfferDeadline(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
-    offset: PromiseOrValue<BigNumberish>,
+    extraTime: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -713,13 +710,13 @@ export interface Unit extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -753,14 +750,14 @@ export interface Unit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -874,13 +871,13 @@ export interface Unit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -914,14 +911,14 @@ export interface Unit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1026,13 +1023,13 @@ export interface Unit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -1066,14 +1063,14 @@ export interface Unit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 

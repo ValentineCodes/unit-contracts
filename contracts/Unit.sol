@@ -179,7 +179,7 @@ contract Unit is IUnit, Ownable {
         );
     }
 
-    function buyItem(
+    function buyItemWithToken(
         address nft,
         uint256 tokenId,
         address token,

@@ -73,7 +73,7 @@ interface IUnit {
 
     function buyItem(address nft, uint256 tokenId) external payable;
 
-    function buyItem(
+    function buyItemWithToken(
         address nft,
         uint256 tokenId,
         address token,

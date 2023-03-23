@@ -27,18 +27,18 @@ import type {
 
 export interface OfferLogicInterface extends utils.Interface {
   functions: {
-    "MIN_BID_DEADLINE()": FunctionFragment;
+    "MIN_DEADLINE()": FunctionFragment;
   };
 
-  getFunction(nameOrSignatureOrTopic: "MIN_BID_DEADLINE"): FunctionFragment;
+  getFunction(nameOrSignatureOrTopic: "MIN_DEADLINE"): FunctionFragment;
 
   encodeFunctionData(
-    functionFragment: "MIN_BID_DEADLINE",
+    functionFragment: "MIN_DEADLINE",
     values?: undefined
   ): string;
 
   decodeFunctionResult(
-    functionFragment: "MIN_BID_DEADLINE",
+    functionFragment: "MIN_DEADLINE",
     data: BytesLike
   ): Result;
 
@@ -156,13 +156,13 @@ export interface OfferLogic extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<[BigNumber]>;
+    MIN_DEADLINE(overrides?: CallOverrides): Promise<[BigNumber]>;
   };
 
-  MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
+  MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
 
   callStatic: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
+    MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   filters: {
@@ -243,10 +243,10 @@ export interface OfferLogic extends BaseContract {
   };
 
   estimateGas: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
+    MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    MIN_DEADLINE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

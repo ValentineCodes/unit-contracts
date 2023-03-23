@@ -70,7 +70,7 @@ export interface IUnitInterface extends utils.Interface {
   functions: {
     "acceptOffer(address,address,uint256)": FunctionFragment;
     "buyItem(address,uint256)": FunctionFragment;
-    "buyItem(address,uint256,address,uint256)": FunctionFragment;
+    "buyItemWithToken(address,uint256,address,uint256)": FunctionFragment;
     "createOffer(address,uint256,address,uint256,uint256)": FunctionFragment;
     "disableAuction(address,uint256,uint256)": FunctionFragment;
     "enableAuction(address,uint256,uint256)": FunctionFragment;
@@ -93,8 +93,8 @@ export interface IUnitInterface extends utils.Interface {
   getFunction(
     nameOrSignatureOrTopic:
       | "acceptOffer"
-      | "buyItem(address,uint256)"
-      | "buyItem(address,uint256,address,uint256)"
+      | "buyItem"
+      | "buyItemWithToken"
       | "createOffer"
       | "disableAuction"
       | "enableAuction"
@@ -123,11 +123,11 @@ export interface IUnitInterface extends utils.Interface {
     ]
   ): string;
   encodeFunctionData(
-    functionFragment: "buyItem(address,uint256)",
+    functionFragment: "buyItem",
     values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
   ): string;
   encodeFunctionData(
-    functionFragment: "buyItem(address,uint256,address,uint256)",
+    functionFragment: "buyItemWithToken",
     values: [
       PromiseOrValue<string>,
       PromiseOrValue<BigNumberish>,
@@ -254,12 +254,9 @@ export interface IUnitInterface extends utils.Interface {
     functionFragment: "acceptOffer",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "buyItem", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "buyItem(address,uint256)",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "buyItem(address,uint256,address,uint256)",
+    functionFragment: "buyItemWithToken",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -353,13 +350,13 @@ export interface IUnit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -493,13 +490,13 @@ export interface IUnit extends BaseContract {
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "buyItem(address,uint256)"(
+  buyItem(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
     overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
-  "buyItem(address,uint256,address,uint256)"(
+  buyItemWithToken(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
     token: PromiseOrValue<string>,
@@ -631,13 +628,13 @@ export interface IUnit extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -772,13 +769,13 @@ export interface IUnit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
@@ -911,13 +908,13 @@ export interface IUnit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buyItem(address,uint256)"(
+    buyItem(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: PayableOverrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
-    "buyItem(address,uint256,address,uint256)"(
+    buyItemWithToken(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       token: PromiseOrValue<string>,
