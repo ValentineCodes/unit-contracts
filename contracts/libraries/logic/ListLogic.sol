@@ -75,8 +75,8 @@ library ListLogic {
         if (_nft.ownerOf(tokenId) != msg.sender) revert Unit__NotOwner();
         if (_nft.getApproved(tokenId) != address(this))
             revert Unit__NotApprovedToSpendNFT();
-        if (deadline > 0 && deadline <= block.timestamp)
-            revert Unit__InvalidDeadline();
+
+        uint256 _deadline = deadline > 0 ? block.timestamp + deadline : 0;
 
         s_listings[nft][tokenId] = DataTypes.Listing({
             seller: msg.sender,
@@ -85,7 +85,7 @@ library ListLogic {
             token: token,
             price: price,
             auction: auction,
-            deadline: deadline
+            deadline: _deadline
         });
 
         emit ItemListed(
@@ -95,7 +95,7 @@ library ListLogic {
             token,
             price,
             auction,
-            deadline
+            _deadline
         );
     }
 
@@ -150,12 +150,12 @@ library ListLogic {
             storage s_listings,
         address nft,
         uint256 tokenId,
-        uint256 offset
+        uint256 extraTime
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
         uint256 oldDeadline = listing.deadline;
-        uint256 newDeadline = oldDeadline + offset;
+        uint256 newDeadline = oldDeadline + extraTime;
 
         if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
         if (newDeadline <= block.timestamp) revert Unit__InvalidDeadline();

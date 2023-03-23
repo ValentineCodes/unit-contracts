@@ -147,9 +147,9 @@ contract Unit is IUnit, Ownable {
     function extendItemDeadline(
         address nft,
         uint256 tokenId,
-        uint256 offset
+        uint256 extraTime
     ) external override isOwner(nft, tokenId, msg.sender) {
-        ListLogic.extendItemDeadline(s_listings, nft, tokenId, offset);
+        ListLogic.extendItemDeadline(s_listings, nft, tokenId, extraTime);
     }
 
     function enableAuction(
@@ -233,14 +233,14 @@ contract Unit is IUnit, Ownable {
     function extendOfferDeadline(
         address nft,
         uint256 tokenId,
-        uint256 offset
+        uint256 extraTime
     ) external override {
         OfferLogic.extendOfferDeadline(
             s_listings,
             s_offers,
             nft,
             tokenId,
-            offset
+            extraTime
         );
     }
 

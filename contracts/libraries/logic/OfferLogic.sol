@@ -67,7 +67,7 @@ library OfferLogic {
 
     event OfferRemoved(address nft, uint256 tokenId, address offerOwner);
 
-    uint256 public constant MIN_BID_DEADLINE = 1 hours;
+    uint256 public constant MIN_DEADLINE = 1 hours;
 
     function createOffer(
         mapping(address => mapping(uint256 => DataTypes.Listing))
@@ -92,20 +92,16 @@ library OfferLogic {
             revert Unit__PendingOffer(msg.sender, nft, tokenId, token, amount);
         if (amount <= 0) revert Unit__InsufficientAmount();
 
-        // Item has deadline and it has been reached
-        if (listing.deadline > 0 && deadline > listing.deadline)
-            revert Unit__ItemDeadlineExceeded();
-
         // Unit must be approved to spend token
         if (IERC20(token).allowance(msg.sender, address(this)) < amount)
             revert Unit__NotApprovedToSpendToken(token);
 
-        uint256 _deadline = deadline;
+        uint256 _deadline = deadline > 0 ? block.timestamp + deadline : 0;
 
-        if (deadline == 0) {
+        if (_deadline == 0 || _deadline > listing.deadline) {
             _deadline = listing.deadline;
-        } else if (deadline < block.timestamp + MIN_BID_DEADLINE) {
-            revert Unit__DeadlineLessThanMinimum(deadline, MIN_BID_DEADLINE);
+        } else if (deadline < MIN_DEADLINE) {
+            revert Unit__DeadlineLessThanMinimum(deadline, MIN_DEADLINE);
         }
 
         s_offers[msg.sender][nft][tokenId] = DataTypes.Offer(
@@ -114,7 +110,7 @@ library OfferLogic {
             _deadline
         );
 
-        if (listing.deadline != 0) {
+        if (listing.deadline > 0) {
             s_listings[nft][tokenId].deadline += 1 hours;
         }
 
@@ -173,11 +169,11 @@ library OfferLogic {
             storage s_offers,
         address nft,
         uint256 tokenId,
-        uint256 offset
+        uint256 extraTime
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
         uint256 oldDeadline = s_offers[msg.sender][nft][tokenId].deadline;
-        uint256 newDeadline = oldDeadline + offset;
+        uint256 newDeadline = oldDeadline + extraTime;
 
         if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
         if (oldDeadline <= 0)
