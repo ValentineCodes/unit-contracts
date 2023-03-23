@@ -23,6 +23,8 @@ library WithdrawLogic {
         uint256 indexed amount
     );
 
+    address private constant ETH = address(0);
+
     function withdrawEarnings(
         mapping(address => mapping(address => uint256)) storage s_earnings,
         address token
@@ -33,7 +35,7 @@ library WithdrawLogic {
 
         delete s_earnings[msg.sender][token];
 
-        if (token == address(0)) {
+        if (token == ETH) {
             // Handle Eth transfer
             (bool success, ) = payable(msg.sender).call{value: earnings}("");
 
@@ -59,7 +61,7 @@ library WithdrawLogic {
             s_fees[token] -= amount;
         }
 
-        if (token == address(0)) {
+        if (token == ETH) {
             // Handle Eth transfer
             (bool success, ) = payable(msg.sender).call{value: amount}("");
 

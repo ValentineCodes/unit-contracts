@@ -40,7 +40,7 @@ library BuyLogic {
 
         if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
         if (listing.auction) revert Unit__ItemInAuction(nft, tokenId);
-        if (listing.token != address(0))
+        if (listing.token != ETH)
             revert Unit__ItemPriceInToken(nft, tokenId, listing.token); // Use buyItem(address, uint256, address, uint256)
         if (listing.price < amount) revert Unit__InsufficientAmount();
 
@@ -73,8 +73,7 @@ library BuyLogic {
 
         if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
         if (listing.price < amount) revert Unit__InsufficientAmount();
-        if (listing.token == address(0))
-            revert Unit__ItemPriceInEth(nft, tokenId); // Use payable buyItem(address, uint256)
+        if (listing.token == ETH) revert Unit__ItemPriceInEth(nft, tokenId); // Use payable buyItem(address, uint256)
         if (listing.token != token)
             revert Unit__InvalidItemToken(token, listing.token);
 
