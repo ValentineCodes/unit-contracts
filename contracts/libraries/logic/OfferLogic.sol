@@ -6,29 +6,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Helpers} from "../helpers/Helpers.sol";
-
-error Unit__ItemNotListed(address nft, uint256 tokenId);
-error Unit__ZeroAddress();
-error Unit__PendingOffer(
-    address offerOwner,
-    address nft,
-    uint256 tokenId,
-    address token,
-    uint256 amount
-);
-error Unit__OfferDoesNotExist(address nft, uint256 tokenId, address offerOwner);
-error Unit__OfferExpired(
-    address nft,
-    uint256 tokenId,
-    address token,
-    uint256 amount
-);
-error Unit__TokenTransferFailed(address to, address token, uint256 amount);
-error Unit__InsufficientAmount();
-error Unit__ItemDeadlineExceeded();
-error Unit__InvalidDeadline();
-error Unit__DeadlineLessThanMinimum(uint256 deadline, uint256 minimumDeadline);
-error Unit__NotApprovedToSpendToken(address token);
+import {Errors} from "../types/Errors.sol";
 
 library OfferLogic {
     event OfferCreated(
@@ -80,28 +58,34 @@ library OfferLogic {
         uint256 amount,
         uint256 deadline
     ) external {
-        if (token == address(0)) revert Unit__ZeroAddress();
+        if (token == address(0)) revert Errors.Unit__ZeroAddress();
 
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
         DataTypes.Offer memory currentOffer = s_offers[msg.sender][nft][
             tokenId
         ];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
         if (currentOffer.amount > 0 && currentOffer.deadline > block.timestamp)
-            revert Unit__PendingOffer(msg.sender, nft, tokenId, token, amount);
-        if (amount <= 0) revert Unit__InsufficientAmount();
+            revert Errors.Unit__PendingOffer(
+                msg.sender,
+                nft,
+                tokenId,
+                token,
+                amount
+            );
+        if (amount <= 0) revert Errors.Unit__InsufficientAmount();
 
         // Unit must be approved to spend token
         if (IERC20(token).allowance(msg.sender, address(this)) < amount)
-            revert Unit__NotApprovedToSpendToken(token);
+            revert Errors.Unit__NotApprovedToSpendToken(token);
 
         uint256 _deadline = deadline > 0 ? block.timestamp + deadline : 0;
 
         if (_deadline == 0 || _deadline > listing.deadline) {
             _deadline = listing.deadline;
         } else if (deadline < MIN_DEADLINE) {
-            revert Unit__DeadlineLessThanMinimum(deadline, MIN_DEADLINE);
+            revert Errors.Unit__DeadlineLessThanMinimum(deadline, MIN_DEADLINE);
         }
 
         s_offers[msg.sender][nft][tokenId] = DataTypes.Offer(
@@ -131,11 +115,16 @@ library OfferLogic {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
         DataTypes.Offer memory offer = s_offers[offerOwner][nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
         if (offer.amount <= 0)
-            revert Unit__OfferDoesNotExist(nft, tokenId, offerOwner);
+            revert Errors.Unit__OfferDoesNotExist(nft, tokenId, offerOwner);
         if (offer.deadline <= block.timestamp)
-            revert Unit__OfferExpired(nft, tokenId, offer.token, offer.amount);
+            revert Errors.Unit__OfferExpired(
+                nft,
+                tokenId,
+                offer.token,
+                offer.amount
+            );
 
         delete s_listings[nft][tokenId];
 
@@ -148,7 +137,7 @@ library OfferLogic {
                 offer.amount
             ) == false
         ) {
-            revert Unit__TokenTransferFailed(
+            revert Errors.Unit__TokenTransferFailed(
                 address(this),
                 offer.token,
                 offer.amount
@@ -175,13 +164,14 @@ library OfferLogic {
         uint256 oldDeadline = s_offers[msg.sender][nft][tokenId].deadline;
         uint256 newDeadline = oldDeadline + extraTime;
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
         if (oldDeadline <= 0)
-            revert Unit__OfferDoesNotExist(nft, tokenId, msg.sender);
+            revert Errors.Unit__OfferDoesNotExist(nft, tokenId, msg.sender);
 
-        if (newDeadline <= block.timestamp) revert Unit__InvalidDeadline();
+        if (newDeadline <= block.timestamp)
+            revert Errors.Unit__InvalidDeadline();
         if (listing.deadline > 0 && newDeadline > listing.deadline)
-            revert Unit__ItemDeadlineExceeded();
+            revert Errors.Unit__ItemDeadlineExceeded();
 
         s_offers[msg.sender][nft][tokenId].deadline = newDeadline;
 
@@ -205,9 +195,9 @@ library OfferLogic {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
         DataTypes.Offer memory offer = s_offers[msg.sender][nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
         if (offer.amount <= 0)
-            revert Unit__OfferDoesNotExist(nft, tokenId, msg.sender);
+            revert Errors.Unit__OfferDoesNotExist(nft, tokenId, msg.sender);
 
         delete s_offers[msg.sender][nft][tokenId];
 

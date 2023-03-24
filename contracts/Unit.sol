@@ -13,11 +13,6 @@ import {BuyLogic} from "./libraries/logic/BuyLogic.sol";
 import {OfferLogic} from "./libraries/logic/OfferLogic.sol";
 import {WithdrawLogic} from "./libraries/logic/WithdrawLogic.sol";
 
-error Unit__ItemListed(address nft, uint256 tokenId);
-error Unit__NotOwner();
-error Unit__ZeroAddress();
-error Unit__OfferDoesNotExist(address nft, uint256 tokenId, address offerOwner);
-
 contract Unit is IUnit, Ownable {
     uint256 public constant MIN_BID_DEADLINE = 1 hours;
     address private constant ETH = address(0);
@@ -31,6 +26,12 @@ contract Unit is IUnit, Ownable {
     mapping(address => mapping(address => uint256)) private s_earnings; // owner > token > amount
 
     mapping(address => uint256) private s_fees; // token => amount
+
+    modifier isListed(address nft, uint256 tokenId) {
+        DataTypes.Listing memory listing = s_listings[nft][tokenId];
+        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        _;
+    }
 
     modifier isNotListed(address nft, uint256 tokenId) {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
@@ -78,6 +79,8 @@ contract Unit is IUnit, Ownable {
             revert Unit__OfferDoesNotExist(nft, tokenId, offerOwner);
     }
 
+    // TO-DO: Batch Listing and Unlisting
+
     // TO-DO: Approve Unit to spend NFT
     // Zero deadline => No deadline
     function listItem(
@@ -124,7 +127,12 @@ contract Unit is IUnit, Ownable {
     function unlistItem(
         address nft,
         uint256 tokenId
-    ) external override isOwner(nft, tokenId, msg.sender) {
+    )
+        external
+        override
+        isOwner(nft, tokenId, msg.sender)
+        isListed(nft, tokenId)
+    {
         ListLogic.unlistItem(s_listings, nft, tokenId);
     }
 

@@ -352,11 +352,250 @@ export interface UnitInterface extends utils.Interface {
   ): Result;
 
   events: {
+    "EarningsWithdrawn(address,address,uint256)": EventFragment;
+    "FeesWithdrawn(address,address,uint256)": EventFragment;
+    "ItemAuctionDisabled(address,uint256,uint256)": EventFragment;
+    "ItemAuctionEnabled(address,uint256,uint256)": EventFragment;
+    "ItemBought(address,address,uint256,address,uint256)": EventFragment;
+    "ItemDeadlineExtended(address,address,uint256,uint256,uint256)": EventFragment;
+    "ItemListed(address,address,uint256,address,uint256,bool,uint256)": EventFragment;
+    "ItemPriceUpdated(address,uint256,address,uint256,uint256)": EventFragment;
+    "ItemSellerUpdated(address,uint256,address,address)": EventFragment;
+    "ItemUnlisted(address,address,uint256)": EventFragment;
+    "OfferAccepted(address,address,uint256,address,uint256)": EventFragment;
+    "OfferAmountUpdated(address,address,uint256,address,uint256,uint256)": EventFragment;
+    "OfferCreated(address,address,uint256,address,uint256,uint256)": EventFragment;
+    "OfferDeadlineExtended(address,address,uint256,uint256,uint256)": EventFragment;
+    "OfferRemoved(address,uint256,address)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
   };
 
+  getEvent(nameOrSignatureOrTopic: "EarningsWithdrawn"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "FeesWithdrawn"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemAuctionDisabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemAuctionEnabled"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemBought"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemDeadlineExtended"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemListed"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemPriceUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemSellerUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "ItemUnlisted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OfferAccepted"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OfferAmountUpdated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OfferCreated"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OfferDeadlineExtended"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "OfferRemoved"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
 }
+
+export interface EarningsWithdrawnEventObject {
+  owner: string;
+  token: string;
+  amount: BigNumber;
+}
+export type EarningsWithdrawnEvent = TypedEvent<
+  [string, string, BigNumber],
+  EarningsWithdrawnEventObject
+>;
+
+export type EarningsWithdrawnEventFilter =
+  TypedEventFilter<EarningsWithdrawnEvent>;
+
+export interface FeesWithdrawnEventObject {
+  feeOwner: string;
+  token: string;
+  amount: BigNumber;
+}
+export type FeesWithdrawnEvent = TypedEvent<
+  [string, string, BigNumber],
+  FeesWithdrawnEventObject
+>;
+
+export type FeesWithdrawnEventFilter = TypedEventFilter<FeesWithdrawnEvent>;
+
+export interface ItemAuctionDisabledEventObject {
+  nft: string;
+  tokenId: BigNumber;
+  fixedPrice: BigNumber;
+}
+export type ItemAuctionDisabledEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  ItemAuctionDisabledEventObject
+>;
+
+export type ItemAuctionDisabledEventFilter =
+  TypedEventFilter<ItemAuctionDisabledEvent>;
+
+export interface ItemAuctionEnabledEventObject {
+  nft: string;
+  tokenId: BigNumber;
+  startingPrice: BigNumber;
+}
+export type ItemAuctionEnabledEvent = TypedEvent<
+  [string, BigNumber, BigNumber],
+  ItemAuctionEnabledEventObject
+>;
+
+export type ItemAuctionEnabledEventFilter =
+  TypedEventFilter<ItemAuctionEnabledEvent>;
+
+export interface ItemBoughtEventObject {
+  buyer: string;
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  price: BigNumber;
+}
+export type ItemBoughtEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  ItemBoughtEventObject
+>;
+
+export type ItemBoughtEventFilter = TypedEventFilter<ItemBoughtEvent>;
+
+export interface ItemDeadlineExtendedEventObject {
+  offerOwner: string;
+  nft: string;
+  tokenId: BigNumber;
+  oldDeadline: BigNumber;
+  newDeadline: BigNumber;
+}
+export type ItemDeadlineExtendedEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber],
+  ItemDeadlineExtendedEventObject
+>;
+
+export type ItemDeadlineExtendedEventFilter =
+  TypedEventFilter<ItemDeadlineExtendedEvent>;
+
+export interface ItemListedEventObject {
+  owner: string;
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  price: BigNumber;
+  auction: boolean;
+  deadline: BigNumber;
+}
+export type ItemListedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber, boolean, BigNumber],
+  ItemListedEventObject
+>;
+
+export type ItemListedEventFilter = TypedEventFilter<ItemListedEvent>;
+
+export interface ItemPriceUpdatedEventObject {
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  oldPrice: BigNumber;
+  newPrice: BigNumber;
+}
+export type ItemPriceUpdatedEvent = TypedEvent<
+  [string, BigNumber, string, BigNumber, BigNumber],
+  ItemPriceUpdatedEventObject
+>;
+
+export type ItemPriceUpdatedEventFilter =
+  TypedEventFilter<ItemPriceUpdatedEvent>;
+
+export interface ItemSellerUpdatedEventObject {
+  nft: string;
+  tokenId: BigNumber;
+  oldSeller: string;
+  newSeller: string;
+}
+export type ItemSellerUpdatedEvent = TypedEvent<
+  [string, BigNumber, string, string],
+  ItemSellerUpdatedEventObject
+>;
+
+export type ItemSellerUpdatedEventFilter =
+  TypedEventFilter<ItemSellerUpdatedEvent>;
+
+export interface ItemUnlistedEventObject {
+  owner: string;
+  nft: string;
+  tokenId: BigNumber;
+}
+export type ItemUnlistedEvent = TypedEvent<
+  [string, string, BigNumber],
+  ItemUnlistedEventObject
+>;
+
+export type ItemUnlistedEventFilter = TypedEventFilter<ItemUnlistedEvent>;
+
+export interface OfferAcceptedEventObject {
+  offerOwner: string;
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  amount: BigNumber;
+}
+export type OfferAcceptedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber],
+  OfferAcceptedEventObject
+>;
+
+export type OfferAcceptedEventFilter = TypedEventFilter<OfferAcceptedEvent>;
+
+export interface OfferAmountUpdatedEventObject {
+  offerOwner: string;
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  oldAmount: BigNumber;
+  newAmount: BigNumber;
+}
+export type OfferAmountUpdatedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber, BigNumber],
+  OfferAmountUpdatedEventObject
+>;
+
+export type OfferAmountUpdatedEventFilter =
+  TypedEventFilter<OfferAmountUpdatedEvent>;
+
+export interface OfferCreatedEventObject {
+  offerOwner: string;
+  nft: string;
+  tokenId: BigNumber;
+  token: string;
+  amount: BigNumber;
+  deadline: BigNumber;
+}
+export type OfferCreatedEvent = TypedEvent<
+  [string, string, BigNumber, string, BigNumber, BigNumber],
+  OfferCreatedEventObject
+>;
+
+export type OfferCreatedEventFilter = TypedEventFilter<OfferCreatedEvent>;
+
+export interface OfferDeadlineExtendedEventObject {
+  offerOwner: string;
+  nft: string;
+  tokenId: BigNumber;
+  oldDeadline: BigNumber;
+  newDeadline: BigNumber;
+}
+export type OfferDeadlineExtendedEvent = TypedEvent<
+  [string, string, BigNumber, BigNumber, BigNumber],
+  OfferDeadlineExtendedEventObject
+>;
+
+export type OfferDeadlineExtendedEventFilter =
+  TypedEventFilter<OfferDeadlineExtendedEvent>;
+
+export interface OfferRemovedEventObject {
+  nft: string;
+  tokenId: BigNumber;
+  offerOwner: string;
+}
+export type OfferRemovedEvent = TypedEvent<
+  [string, BigNumber, string],
+  OfferRemovedEventObject
+>;
+
+export type OfferRemovedEventFilter = TypedEventFilter<OfferRemovedEvent>;
 
 export interface OwnershipTransferredEventObject {
   previousOwner: string;
@@ -851,6 +1090,213 @@ export interface Unit extends BaseContract {
   };
 
   filters: {
+    "EarningsWithdrawn(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): EarningsWithdrawnEventFilter;
+    EarningsWithdrawn(
+      owner?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): EarningsWithdrawnEventFilter;
+
+    "FeesWithdrawn(address,address,uint256)"(
+      feeOwner?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): FeesWithdrawnEventFilter;
+    FeesWithdrawn(
+      feeOwner?: PromiseOrValue<string> | null,
+      token?: PromiseOrValue<string> | null,
+      amount?: PromiseOrValue<BigNumberish> | null
+    ): FeesWithdrawnEventFilter;
+
+    "ItemAuctionDisabled(address,uint256,uint256)"(
+      nft?: null,
+      tokenId?: null,
+      fixedPrice?: null
+    ): ItemAuctionDisabledEventFilter;
+    ItemAuctionDisabled(
+      nft?: null,
+      tokenId?: null,
+      fixedPrice?: null
+    ): ItemAuctionDisabledEventFilter;
+
+    "ItemAuctionEnabled(address,uint256,uint256)"(
+      nft?: null,
+      tokenId?: null,
+      startingPrice?: null
+    ): ItemAuctionEnabledEventFilter;
+    ItemAuctionEnabled(
+      nft?: null,
+      tokenId?: null,
+      startingPrice?: null
+    ): ItemAuctionEnabledEventFilter;
+
+    "ItemBought(address,address,uint256,address,uint256)"(
+      buyer?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      price?: null
+    ): ItemBoughtEventFilter;
+    ItemBought(
+      buyer?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      price?: null
+    ): ItemBoughtEventFilter;
+
+    "ItemDeadlineExtended(address,address,uint256,uint256,uint256)"(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldDeadline?: null,
+      newDeadline?: null
+    ): ItemDeadlineExtendedEventFilter;
+    ItemDeadlineExtended(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldDeadline?: null,
+      newDeadline?: null
+    ): ItemDeadlineExtendedEventFilter;
+
+    "ItemListed(address,address,uint256,address,uint256,bool,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      price?: null,
+      auction?: null,
+      deadline?: null
+    ): ItemListedEventFilter;
+    ItemListed(
+      owner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      price?: null,
+      auction?: null,
+      deadline?: null
+    ): ItemListedEventFilter;
+
+    "ItemPriceUpdated(address,uint256,address,uint256,uint256)"(
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      oldPrice?: null,
+      newPrice?: PromiseOrValue<BigNumberish> | null
+    ): ItemPriceUpdatedEventFilter;
+    ItemPriceUpdated(
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      oldPrice?: null,
+      newPrice?: PromiseOrValue<BigNumberish> | null
+    ): ItemPriceUpdatedEventFilter;
+
+    "ItemSellerUpdated(address,uint256,address,address)"(
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldSeller?: null,
+      newSeller?: PromiseOrValue<string> | null
+    ): ItemSellerUpdatedEventFilter;
+    ItemSellerUpdated(
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldSeller?: null,
+      newSeller?: PromiseOrValue<string> | null
+    ): ItemSellerUpdatedEventFilter;
+
+    "ItemUnlisted(address,address,uint256)"(
+      owner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null
+    ): ItemUnlistedEventFilter;
+    ItemUnlisted(
+      owner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null
+    ): ItemUnlistedEventFilter;
+
+    "OfferAccepted(address,address,uint256,address,uint256)"(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      amount?: null
+    ): OfferAcceptedEventFilter;
+    OfferAccepted(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      amount?: null
+    ): OfferAcceptedEventFilter;
+
+    "OfferAmountUpdated(address,address,uint256,address,uint256,uint256)"(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      oldAmount?: null,
+      newAmount?: null
+    ): OfferAmountUpdatedEventFilter;
+    OfferAmountUpdated(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      oldAmount?: null,
+      newAmount?: null
+    ): OfferAmountUpdatedEventFilter;
+
+    "OfferCreated(address,address,uint256,address,uint256,uint256)"(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      amount?: null,
+      deadline?: null
+    ): OfferCreatedEventFilter;
+    OfferCreated(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      token?: null,
+      amount?: null,
+      deadline?: null
+    ): OfferCreatedEventFilter;
+
+    "OfferDeadlineExtended(address,address,uint256,uint256,uint256)"(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldDeadline?: null,
+      newDeadline?: null
+    ): OfferDeadlineExtendedEventFilter;
+    OfferDeadlineExtended(
+      offerOwner?: PromiseOrValue<string> | null,
+      nft?: PromiseOrValue<string> | null,
+      tokenId?: PromiseOrValue<BigNumberish> | null,
+      oldDeadline?: null,
+      newDeadline?: null
+    ): OfferDeadlineExtendedEventFilter;
+
+    "OfferRemoved(address,uint256,address)"(
+      nft?: null,
+      tokenId?: null,
+      offerOwner?: null
+    ): OfferRemovedEventFilter;
+    OfferRemoved(
+      nft?: null,
+      tokenId?: null,
+      offerOwner?: null
+    ): OfferRemovedEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: PromiseOrValue<string> | null,
       newOwner?: PromiseOrValue<string> | null

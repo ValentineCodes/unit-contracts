@@ -6,16 +6,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Helpers} from "../helpers/Helpers.sol";
-
-error Unit__ItemNotListed(address nft, uint256 tokenId);
-error Unit__ItemInAuction(address nft, uint256 tokenId);
-error Unit__ItemPriceInEth(address nft, uint256 tokenId);
-error Unit__ItemPriceInToken(address nft, uint256 tokenId, address token);
-error Unit__InsufficientAmount();
-error Unit__InvalidItemToken(address requestedToken, address actualToken);
-error Unit__TokenTransferFailed(address to, address token, uint256 amount);
-error Unit__ItemDeadlineReached();
-error Unit__CannotBuyOwnNFT();
+import {Errors} from "../types/Errors.sol";
 
 library BuyLogic {
     event ItemBought(
@@ -39,17 +30,17 @@ library BuyLogic {
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
-        if (listing.auction) revert Unit__ItemInAuction(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        if (listing.auction) revert Errors.Unit__ItemInAuction(nft, tokenId);
         if (listing.token != ETH)
-            revert Unit__ItemPriceInToken(nft, tokenId, listing.token); // Use buyItem(address, uint256, address, uint256)
-        if (listing.price < amount) revert Unit__InsufficientAmount();
+            revert Errors.Unit__ItemPriceInToken(nft, tokenId, listing.token); // Use buyItem(address, uint256, address, uint256)
+        if (listing.price < amount) revert Errors.Unit__InsufficientAmount();
 
         // Item has deadline and it has been reached
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
-            revert Unit__ItemDeadlineReached();
+            revert Errors.Unit__ItemDeadlineReached();
 
-        if (listing.seller == msg.sender) revert Unit__CannotBuyOwnNFT();
+        if (listing.seller == msg.sender) revert Errors.Unit__CannotBuyOwnNFT();
 
         delete s_listings[nft][tokenId];
 
@@ -74,17 +65,18 @@ library BuyLogic {
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
-        if (listing.price < amount) revert Unit__InsufficientAmount();
-        if (listing.token == ETH) revert Unit__ItemPriceInEth(nft, tokenId); // Use payable buyItem(address, uint256)
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        if (listing.price < amount) revert Errors.Unit__InsufficientAmount();
+        if (listing.token == ETH)
+            revert Errors.Unit__ItemPriceInEth(nft, tokenId); // Use payable buyItem(address, uint256)
         if (listing.token != token)
-            revert Unit__InvalidItemToken(token, listing.token);
+            revert Errors.Unit__InvalidItemToken(token, listing.token);
 
         // Item has deadline and it has been reached
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
-            revert Unit__ItemDeadlineReached();
+            revert Errors.Unit__ItemDeadlineReached();
 
-        if (listing.seller == msg.sender) revert Unit__CannotBuyOwnNFT();
+        if (listing.seller == msg.sender) revert Errors.Unit__CannotBuyOwnNFT();
 
         delete s_listings[nft][tokenId];
 
@@ -93,7 +85,7 @@ library BuyLogic {
         if (
             IERC20(token).transferFrom(msg.sender, address(this), amount) ==
             false
-        ) revert Unit__TokenTransferFailed(address(this), token, amount);
+        ) revert Errors.Unit__TokenTransferFailed(address(this), token, amount);
 
         (uint256 earnings, uint256 fee) = Helpers.extractFee(amount);
         s_earnings[listing.seller][token] += earnings;

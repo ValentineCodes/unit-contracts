@@ -11,6 +11,816 @@ import type {
 
 const _abi = [
   {
+    inputs: [],
+    name: "Unit__CannotBuyOwnNFT",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "minimumDeadline",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__DeadlineLessThanMinimum",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__EthTransferFailed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__InsufficientAmount",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "uint256",
+        name: "feeBalance",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "requestedAmount",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__InsufficientFees",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__InvalidDeadline",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "requestedToken",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "actualToken",
+        type: "address",
+      },
+    ],
+    name: "Unit__InvalidItemToken",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ItemDeadlineExceeded",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ItemDeadlineReached",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__ItemInAuction",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__ItemListed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__ItemNotListed",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__ItemPriceInEth",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "Unit__ItemPriceInToken",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__NoUpdateRequired",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__NotApprovedToSpendNFT",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+    ],
+    name: "Unit__NotApprovedToSpendToken",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__NotOwner",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+    ],
+    name: "Unit__OfferDoesNotExist",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__OfferExpired",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__PendingOffer",
+    type: "error",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "to",
+        type: "address",
+      },
+      {
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "Unit__TokenTransferFailed",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ZeroAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ZeroEarnings",
+    type: "error",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "EarningsWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "feeOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "FeesWithdrawn",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "fixedPrice",
+        type: "uint256",
+      },
+    ],
+    name: "ItemAuctionDisabled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "startingPrice",
+        type: "uint256",
+      },
+    ],
+    name: "ItemAuctionEnabled",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "buyer",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+    ],
+    name: "ItemBought",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldDeadline",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newDeadline",
+        type: "uint256",
+      },
+    ],
+    name: "ItemDeadlineExtended",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "price",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "bool",
+        name: "auction",
+        type: "bool",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+    name: "ItemListed",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldPrice",
+        type: "uint256",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "newPrice",
+        type: "uint256",
+      },
+    ],
+    name: "ItemPriceUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "oldSeller",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "newSeller",
+        type: "address",
+      },
+    ],
+    name: "ItemSellerUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+    ],
+    name: "ItemUnlisted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "OfferAccepted",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldAmount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newAmount",
+        type: "uint256",
+      },
+    ],
+    name: "OfferAmountUpdated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "token",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "deadline",
+        type: "uint256",
+      },
+    ],
+    name: "OfferCreated",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "oldDeadline",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "newDeadline",
+        type: "uint256",
+      },
+    ],
+    name: "OfferDeadlineExtended",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "nft",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "tokenId",
+        type: "uint256",
+      },
+      {
+        indexed: false,
+        internalType: "address",
+        name: "offerOwner",
+        type: "address",
+      },
+    ],
+    name: "OfferRemoved",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "address",

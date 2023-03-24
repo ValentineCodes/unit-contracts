@@ -22,8 +22,8 @@ export interface ListLogicInterface extends utils.Interface {
   functions: {};
 
   events: {
-    "ItemAuctionDisabled(address,uint256)": EventFragment;
-    "ItemAuctionEnabled(address,uint256)": EventFragment;
+    "ItemAuctionDisabled(address,uint256,uint256)": EventFragment;
+    "ItemAuctionEnabled(address,uint256,uint256)": EventFragment;
     "ItemDeadlineExtended(address,address,uint256,uint256,uint256)": EventFragment;
     "ItemListed(address,address,uint256,address,uint256,bool,uint256)": EventFragment;
     "ItemPriceUpdated(address,uint256,address,uint256,uint256)": EventFragment;
@@ -43,9 +43,10 @@ export interface ListLogicInterface extends utils.Interface {
 export interface ItemAuctionDisabledEventObject {
   nft: string;
   tokenId: BigNumber;
+  fixedPrice: BigNumber;
 }
 export type ItemAuctionDisabledEvent = TypedEvent<
-  [string, BigNumber],
+  [string, BigNumber, BigNumber],
   ItemAuctionDisabledEventObject
 >;
 
@@ -55,9 +56,10 @@ export type ItemAuctionDisabledEventFilter =
 export interface ItemAuctionEnabledEventObject {
   nft: string;
   tokenId: BigNumber;
+  startingPrice: BigNumber;
 }
 export type ItemAuctionEnabledEvent = TypedEvent<
-  [string, BigNumber],
+  [string, BigNumber, BigNumber],
   ItemAuctionEnabledEventObject
 >;
 
@@ -167,22 +169,26 @@ export interface ListLogic extends BaseContract {
   callStatic: {};
 
   filters: {
-    "ItemAuctionDisabled(address,uint256)"(
+    "ItemAuctionDisabled(address,uint256,uint256)"(
       nft?: null,
-      tokenId?: null
+      tokenId?: null,
+      fixedPrice?: null
     ): ItemAuctionDisabledEventFilter;
     ItemAuctionDisabled(
       nft?: null,
-      tokenId?: null
+      tokenId?: null,
+      fixedPrice?: null
     ): ItemAuctionDisabledEventFilter;
 
-    "ItemAuctionEnabled(address,uint256)"(
+    "ItemAuctionEnabled(address,uint256,uint256)"(
       nft?: null,
-      tokenId?: null
+      tokenId?: null,
+      startingPrice?: null
     ): ItemAuctionEnabledEventFilter;
     ItemAuctionEnabled(
       nft?: null,
-      tokenId?: null
+      tokenId?: null,
+      startingPrice?: null
     ): ItemAuctionEnabledEventFilter;
 
     "ItemDeadlineExtended(address,address,uint256,uint256,uint256)"(

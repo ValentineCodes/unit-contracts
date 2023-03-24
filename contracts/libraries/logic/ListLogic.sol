@@ -4,15 +4,7 @@ pragma solidity ^0.8.6;
 
 import {DataTypes} from "../types/DataTypes.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-
-error Unit__ItemListed(address nft, uint256 tokenId);
-error Unit__ItemNotListed(address nft, uint256 tokenId);
-error Unit__NotOwner();
-error Unit__ZeroAddress();
-error Unit__NotApprovedToSpendNFT();
-error Unit__InsufficientAmount();
-error Unit__ItemInAuction(address nft, uint256 tokenId);
-error Unit__InvalidDeadline();
+import {Errors} from "../types/Errors.sol";
 
 library ListLogic {
     event ItemListed(
@@ -54,9 +46,13 @@ library ListLogic {
         address indexed newSeller
     );
 
-    event ItemAuctionEnabled(address nft, uint256 tokenId);
+    event ItemAuctionEnabled(
+        address nft,
+        uint256 tokenId,
+        uint256 startingPrice
+    );
 
-    event ItemAuctionDisabled(address nft, uint256 tokenId);
+    event ItemAuctionDisabled(address nft, uint256 tokenId, uint256 fixedPrice);
 
     function listItem(
         mapping(address => mapping(uint256 => DataTypes.Listing))
@@ -68,13 +64,13 @@ library ListLogic {
         bool auction,
         uint256 deadline
     ) external {
-        if (price == 0) revert Unit__InsufficientAmount();
+        if (price == 0) revert Errors.Unit__InsufficientAmount();
 
         IERC721 _nft = IERC721(nft);
 
-        if (_nft.ownerOf(tokenId) != msg.sender) revert Unit__NotOwner();
+        if (_nft.ownerOf(tokenId) != msg.sender) revert Errors.Unit__NotOwner();
         if (_nft.getApproved(tokenId) != address(this))
-            revert Unit__NotApprovedToSpendNFT();
+            revert Errors.Unit__NotApprovedToSpendNFT();
 
         uint256 _deadline = deadline > 0 ? block.timestamp + deadline : 0;
 
@@ -119,7 +115,8 @@ library ListLogic {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
         address oldSeller = listing.seller;
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        if (oldSeller == newSeller) revert Errors.Unit__NoUpdateRequired();
 
         s_listings[nft][tokenId].seller = newSeller;
 
@@ -137,8 +134,9 @@ library ListLogic {
 
         uint256 oldPrice = listing.price;
 
-        if (oldPrice <= 0) revert Unit__ItemNotListed(nft, tokenId);
-        if (newPrice <= 0) revert Unit__InsufficientAmount();
+        if (oldPrice <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        if (oldPrice == newPrice) revert Errors.Unit__NoUpdateRequired();
+        if (newPrice <= 0) revert Errors.Unit__InsufficientAmount();
 
         s_listings[nft][tokenId].price = newPrice;
 
@@ -154,11 +152,14 @@ library ListLogic {
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
-        uint256 oldDeadline = listing.deadline;
+        uint256 oldDeadline = listing.deadline > 0
+            ? listing.deadline
+            : block.timestamp;
         uint256 newDeadline = oldDeadline + extraTime;
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
-        if (newDeadline <= block.timestamp) revert Unit__InvalidDeadline();
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        if (newDeadline <= block.timestamp)
+            revert Errors.Unit__InvalidDeadline();
 
         s_listings[nft][tokenId].deadline = newDeadline;
 
@@ -166,7 +167,7 @@ library ListLogic {
             msg.sender,
             nft,
             tokenId,
-            oldDeadline,
+            listing.deadline,
             newDeadline
         );
     }
@@ -180,9 +181,9 @@ library ListLogic {
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
 
-        if (newPrice == 0) {
+        if (newPrice == 0 || newPrice == listing.price) {
             s_listings[nft][tokenId].auction = true;
         } else {
             listing.auction = true;
@@ -190,7 +191,7 @@ library ListLogic {
             s_listings[nft][tokenId] = listing;
         }
 
-        emit ItemAuctionEnabled(nft, tokenId);
+        emit ItemAuctionEnabled(nft, tokenId, listing.price);
     }
 
     function disableAuction(
@@ -202,9 +203,9 @@ library ListLogic {
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
-        if (listing.price <= 0) revert Unit__ItemNotListed(nft, tokenId);
+        if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
 
-        if (newPrice == 0) {
+        if (newPrice == 0 || newPrice == listing.price) {
             s_listings[nft][tokenId].auction = false;
         } else {
             listing.auction = false;
@@ -212,6 +213,6 @@ library ListLogic {
             s_listings[nft][tokenId] = listing;
         }
 
-        emit ItemAuctionDisabled(nft, tokenId);
+        emit ItemAuctionDisabled(nft, tokenId, listing.price);
     }
 }
