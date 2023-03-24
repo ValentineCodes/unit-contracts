@@ -258,10 +258,7 @@ contract Unit is IUnit, Ownable {
         WithdrawLogic.withdrawEarnings(s_earnings, token);
     }
 
-    function withdrawFees(
-        address token,
-        uint256 amount
-    ) external override onlyOwner {
-        WithdrawLogic.withdrawFees(s_fees, token, amount);
+    function withdrawFees(address token) external override onlyOwner {
+        WithdrawLogic.withdrawFees(s_fees, token);
     }
 }

@@ -19,11 +19,13 @@ import { DataTypes } from "../../typechain/contracts/Unit";
       let listLogic: ListLogic;
 
       // Signers
+      let unitDeployer: SignerWithAddress;
       let mocksDeployer: SignerWithAddress;
       let user_1: SignerWithAddress;
 
       beforeEach(async () => {
         const signers = await ethers.getSigners();
+        unitDeployer = signers[0];
         mocksDeployer = signers[1];
         user_1 = signers[2];
 
@@ -38,6 +40,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         listLogic = await ethers.getContract("ListLogic");
       });
 
+      /** Helper functions */
       const listItem = async (
         nft: string,
         tokenId: number,
@@ -85,6 +88,23 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           .createOffer(nft, tokenId, token, amount, deadline);
 
         return listingDeadline;
+      };
+
+      const buyItemWithToken = async () => {
+        await listItemWithToken(
+          myNFT.address,
+          0,
+          dai.address,
+          ONE_ETH,
+          false,
+          3600
+        );
+
+        await dai.transfer(user_1.address, ONE_ETH);
+        await dai.connect(user_1).approve(unit.address, ONE_ETH);
+        await unit
+          .connect(user_1)
+          .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH);
       };
 
       const getBlockTimestamp = async (): Promise<number> => {
@@ -1031,6 +1051,188 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           )
             .to.emit(unit, "ItemBought")
             .withArgs(user_1.address, myNFT.address, 0, dai.address, ONE_ETH);
+        });
+      });
+
+      describe("withdrawEarnings", () => {
+        it("reverts if caller has no earnings", async () => {
+          await expect(
+            unit.withdrawEarnings(ETH_ADDRESS)
+          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
+        });
+
+        it("deletes earnings and transfers ETH to caller", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+
+          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+            value: ONE_ETH,
+          });
+
+          const earnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            ETH_ADDRESS
+          );
+          console.log("Earnings: ", ethers.utils.formatEther(earnings), "ETH");
+
+          const prevSellerBal: BigNumber = await mocksDeployer.getBalance();
+          console.log(
+            "Prev Bal: ",
+            ethers.utils.formatEther(prevSellerBal),
+            "ETH"
+          );
+
+          await unit.withdrawEarnings(ETH_ADDRESS);
+
+          const currentEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            ETH_ADDRESS
+          );
+
+          const currentSellerBal: BigNumber = await mocksDeployer.getBalance();
+          console.log(
+            "Current Bal: ",
+            ethers.utils.formatEther(currentSellerBal),
+            "ETH"
+          );
+
+          expect(currentEarnings).to.eq(0);
+          expect(currentSellerBal).to.greaterThan(prevSellerBal);
+        });
+
+        it("deletes earnings and transfers token to caller", async () => {
+          await buyItemWithToken();
+
+          const earnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            dai.address
+          );
+          console.log("Earnings: ", ethers.utils.formatEther(earnings), "DAI");
+
+          const prevSellerBal: BigNumber = await dai.balanceOf(
+            mocksDeployer.address
+          );
+
+          console.log(
+            "Prev Bal: ",
+            ethers.utils.formatEther(prevSellerBal),
+            "DAI"
+          );
+
+          await unit.withdrawEarnings(dai.address);
+
+          const currentEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            dai.address
+          );
+          const currentSellerBal: BigNumber = await dai.balanceOf(
+            mocksDeployer.address
+          );
+
+          console.log(
+            "Current Bal: ",
+            ethers.utils.formatEther(currentSellerBal),
+            "DAI"
+          );
+
+          expect(currentEarnings).to.eq(0);
+          expect(currentSellerBal).to.greaterThan(prevSellerBal);
+        });
+
+        it("emits an event", async () => {
+          await buyItemWithToken();
+          const earnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            dai.address
+          );
+
+          await expect(unit.withdrawEarnings(dai.address))
+            .to.emit(unit, "EarningsWithdrawn")
+            .withArgs(mocksDeployer.address, dai.address, earnings);
+        });
+      });
+
+      describe("withdrawFees", () => {
+        it("reverts if caller is not Unit owner", async () => {
+          await expect(unit.withdrawFees(ETH_ADDRESS)).to.reverted;
+        });
+        it("reverts if caller has no fee earnings", async () => {
+          await expect(
+            unit.connect(unitDeployer).withdrawFees(ETH_ADDRESS)
+          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
+        });
+
+        it("deletes fee earnings and transfers ETH to caller", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+
+          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+            value: ONE_ETH,
+          });
+
+          const fees: BigNumber = await unit.getFees(ETH_ADDRESS);
+          console.log("Fees: ", ethers.utils.formatEther(fees), "ETH");
+
+          const prevSellerBal: BigNumber = await unitDeployer.getBalance();
+          console.log(
+            "Prev Bal: ",
+            ethers.utils.formatEther(prevSellerBal),
+            "ETH"
+          );
+
+          await unit.connect(unitDeployer).withdrawFees(ETH_ADDRESS);
+
+          const currentFees: BigNumber = await unit.getFees(ETH_ADDRESS);
+
+          const currentSellerBal: BigNumber = await unitDeployer.getBalance();
+          console.log(
+            "Current Bal: ",
+            ethers.utils.formatEther(currentSellerBal),
+            "ETH"
+          );
+
+          expect(currentFees).to.eq(0);
+          expect(currentSellerBal).to.greaterThan(prevSellerBal);
+        });
+
+        it("deletes fee earnings and transfers token to caller", async () => {
+          await buyItemWithToken();
+
+          const fees: BigNumber = await unit.getFees(dai.address);
+          console.log("Fees: ", ethers.utils.formatEther(fees), "DAI");
+
+          const prevSellerBal: BigNumber = await dai.balanceOf(
+            unitDeployer.address
+          );
+
+          console.log(
+            "Prev Bal: ",
+            ethers.utils.formatEther(prevSellerBal),
+            "DAI"
+          );
+
+          await unit.connect(unitDeployer).withdrawFees(dai.address);
+
+          const currentFees: BigNumber = await unit.getFees(dai.address);
+          const currentSellerBal: BigNumber = await dai.balanceOf(
+            unitDeployer.address
+          );
+
+          console.log(
+            "Current Bal: ",
+            ethers.utils.formatEther(currentSellerBal),
+            "DAI"
+          );
+
+          expect(currentFees).to.eq(0);
+          expect(currentSellerBal).to.greaterThan(prevSellerBal);
+        });
+
+        it("emits an event", async () => {
+          await buyItemWithToken();
+          const fees: BigNumber = await unit.getFees(dai.address);
+
+          await expect(unit.connect(unitDeployer).withdrawFees(dai.address))
+            .to.emit(unit, "FeesWithdrawn")
+            .withArgs(unitDeployer.address, dai.address, fees);
         });
       });
     });

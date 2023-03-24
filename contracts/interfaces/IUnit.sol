@@ -251,5 +251,5 @@ interface IUnit {
 
     function withdrawEarnings(address token) external;
 
-    function withdrawFees(address token, uint256 amount) external;
+    function withdrawFees(address token) external;
 }

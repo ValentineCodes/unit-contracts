@@ -52,15 +52,13 @@ library WithdrawLogic {
 
     function withdrawFees(
         mapping(address => uint256) storage s_fees,
-        address token,
-        uint256 amount
+        address token
     ) external {
-        if (s_fees[token] < amount)
-            revert Errors.Unit__InsufficientFees(s_fees[token], amount);
+        uint256 amount = s_fees[token];
 
-        unchecked {
-            s_fees[token] -= amount;
-        }
+        if (amount <= 0) revert Errors.Unit__ZeroEarnings();
+
+        delete s_fees[token];
 
         if (token == ETH) {
             // Handle Eth transfer

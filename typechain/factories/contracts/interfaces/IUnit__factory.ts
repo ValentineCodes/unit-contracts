@@ -1337,11 +1337,6 @@ const _abi = [
         name: "token",
         type: "address",
       },
-      {
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
     ],
     name: "withdrawFees",
     outputs: [],

@@ -95,7 +95,7 @@ export interface UnitInterface extends utils.Interface {
     "updateItemPrice(address,uint256,uint256)": FunctionFragment;
     "updateItemSeller(address,uint256,address)": FunctionFragment;
     "withdrawEarnings(address)": FunctionFragment;
-    "withdrawFees(address,uint256)": FunctionFragment;
+    "withdrawFees(address)": FunctionFragment;
   };
 
   getFunction(
@@ -272,7 +272,7 @@ export interface UnitInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "withdrawFees",
-    values: [PromiseOrValue<string>, PromiseOrValue<BigNumberish>]
+    values: [PromiseOrValue<string>]
   ): string;
 
   decodeFunctionResult(
@@ -782,7 +782,6 @@ export interface Unit extends BaseContract {
 
     withdrawFees(
       token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
@@ -933,7 +932,6 @@ export interface Unit extends BaseContract {
 
   withdrawFees(
     token: PromiseOrValue<string>,
-    amount: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -1082,7 +1080,6 @@ export interface Unit extends BaseContract {
 
     withdrawFees(
       token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
   };
@@ -1452,7 +1449,6 @@ export interface Unit extends BaseContract {
 
     withdrawFees(
       token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
   };
@@ -1604,7 +1600,6 @@ export interface Unit extends BaseContract {
 
     withdrawFees(
       token: PromiseOrValue<string>,
-      amount: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
   };
