@@ -34,11 +34,11 @@ library BuyLogic {
         if (listing.auction) revert Errors.Unit__ItemInAuction(nft, tokenId);
         if (listing.token != ETH)
             revert Errors.Unit__ItemPriceInToken(nft, tokenId, listing.token); // Use buyItem(address, uint256, address, uint256)
-        if (listing.price < amount) revert Errors.Unit__InsufficientAmount();
+        if (listing.price != amount) revert Errors.Unit__InvalidAmount();
 
         // Item has deadline and it has been reached
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
-            revert Errors.Unit__ItemDeadlineReached();
+            revert Errors.Unit__ListingExpired();
 
         if (listing.seller == msg.sender) revert Errors.Unit__CannotBuyOwnNFT();
 
@@ -66,7 +66,8 @@ library BuyLogic {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
         if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
-        if (listing.price < amount) revert Errors.Unit__InsufficientAmount();
+        if (listing.price != amount) revert Errors.Unit__InvalidAmount();
+        if (listing.auction) revert Errors.Unit__ItemInAuction(nft, tokenId);
         if (listing.token == ETH)
             revert Errors.Unit__ItemPriceInEth(nft, tokenId); // Use payable buyItem(address, uint256)
         if (listing.token != token)
@@ -74,9 +75,12 @@ library BuyLogic {
 
         // Item has deadline and it has been reached
         if (listing.deadline > 0 && block.timestamp >= listing.deadline)
-            revert Errors.Unit__ItemDeadlineReached();
+            revert Errors.Unit__ListingExpired();
 
         if (listing.seller == msg.sender) revert Errors.Unit__CannotBuyOwnNFT();
+
+        if (IERC20(token).allowance(msg.sender, address(this)) < amount)
+            revert Errors.Unit__NotApprovedToSpendToken(token);
 
         delete s_listings[nft][tokenId];
 

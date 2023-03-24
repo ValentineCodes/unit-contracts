@@ -5,7 +5,7 @@ import { deployments, ethers, network } from "hardhat";
 import { developmentChains } from "../../helper-hardhat-config";
 import { DAI, ListLogic, MyNFT, Unit } from "../../typechain";
 
-import { ZERO_ADDRESS } from "../../helpers/constants";
+import { ZERO_ADDRESS, ETH_ADDRESS } from "../../helpers/constants";
 import { DataTypes } from "../../typechain/contracts/Unit";
 
 !developmentChains.includes(network.name)
@@ -46,6 +46,25 @@ import { DataTypes } from "../../typechain/contracts/Unit";
       ) => {
         await myNFT.approve(unit.address, tokenId);
         await unit.listItem(nft, tokenId, amount, deadline);
+      };
+
+      const listItemWithToken = async (
+        nft: string,
+        tokenId: number,
+        token: string,
+        amount: BigNumber,
+        auction: boolean,
+        deadline: number
+      ) => {
+        await myNFT.approve(unit.address, tokenId);
+        await unit.listItemWithToken(
+          nft,
+          tokenId,
+          token,
+          amount,
+          auction,
+          deadline
+        );
       };
 
       const createOffer = async (
@@ -92,12 +111,9 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
           const earnings: BigNumber = await unit.getEarnings(
             mocksDeployer.address,
-            ZERO_ADDRESS
+            ETH_ADDRESS
           );
-          const expectedEarnings: BigNumber = ethers.utils
-            .parseEther("1")
-            .mul(99)
-            .div(100); // with 1% fee off
+          const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
 
           expect(earnings).to.eq(expectedEarnings);
         });
@@ -166,7 +182,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           expect(listing.seller).to.eq(mocksDeployer.address);
           expect(listing.nft).to.eq(myNFT.address);
           expect(listing.tokenId).to.eq(0);
-          expect(listing.token).to.eq(ZERO_ADDRESS);
+          expect(listing.token).to.eq(ETH_ADDRESS);
           expect(listing.price).to.eq(ONE_ETH);
           expect(listing.auction).to.eq(false);
           expect(listing.deadline.toString()).to.eq(
@@ -181,7 +197,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
               mocksDeployer.address,
               myNFT.address,
               0,
-              ZERO_ADDRESS,
+              ETH_ADDRESS,
               ONE_ETH,
               false,
               async (deadline: BigNumber) => {
@@ -360,7 +376,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await listItem(myNFT.address, 0, ONE_ETH, 3600);
           await expect(unit.updateItemPrice(myNFT.address, 0, newPrice))
             .to.emit(unit, "ItemPriceUpdated")
-            .withArgs(myNFT.address, 0, ZERO_ADDRESS, ONE_ETH, newPrice);
+            .withArgs(myNFT.address, 0, ETH_ADDRESS, ONE_ETH, newPrice);
         });
       });
 
@@ -741,6 +757,280 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await expect(unit.connect(user_1).removeOffer(myNFT.address, 0))
             .to.emit(unit, "OfferRemoved")
             .withArgs(myNFT.address, 0, user_1.address);
+        });
+      });
+
+      describe("buyItem", () => {
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+        });
+
+        it("reverts if item is in auction", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            true,
+            3600
+          );
+          await expect(
+            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
+          ).to.revertedWithCustomError(unit, "Unit__ItemInAuction");
+        });
+
+        it("reverts if item price currency is not ETH", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(
+            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
+          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInToken");
+        });
+
+        it("reverts if amount is not item price", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.buyItem(myNFT.address, 0, {
+              value: ethers.utils.parseEther("0.8"),
+            })
+          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
+        });
+
+        it("reverts if listing has expired", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+
+          const blockTimestamp: number = await getBlockTimestamp();
+          await network.provider.send("evm_increaseTime", [
+            blockTimestamp + 3600,
+          ]);
+          await network.provider.send("evm_mine");
+
+          await expect(
+            unit.buyItem(myNFT.address, 0, {
+              value: ONE_ETH,
+            })
+          ).to.revertedWithCustomError(unit, "Unit__ListingExpired");
+        });
+
+        it("reverts if buyer is seller", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.buyItem(myNFT.address, 0, {
+              value: ONE_ETH,
+            })
+          ).to.revertedWithCustomError(unit, "Unit__CannotBuyOwnNFT");
+        });
+
+        it("deletes listing, transfers nft to caller, records earnings and fees", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+
+          const prevUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
+          const prevSellerEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            ETH_ADDRESS
+          );
+
+          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+            value: ONE_ETH,
+          });
+
+          const listing = await unit.getListing(myNFT.address, 0);
+          const currentUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
+          const currentSellerEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            ETH_ADDRESS
+          );
+
+          expect(listing.price).to.eq(0);
+          expect(await myNFT.ownerOf(0)).to.eq(user_1.address);
+
+          const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
+
+          expect(currentSellerEarnings).to.eq(
+            prevSellerEarnings.add(expectedEarnings)
+          );
+          expect(currentUnitFees).to.eq(prevUnitFees.add(ONE_ETH.div(100))); // 1% fee
+        });
+      });
+
+      describe("buyItemWithToken", () => {
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+        });
+
+        it("reverts if amount is not item price", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(
+              myNFT.address,
+              0,
+              dai.address,
+              ethers.utils.parseEther("0.8")
+            )
+          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
+        });
+
+        it("reverts if item is in auction", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            true,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemInAuction");
+        });
+
+        it("reverts if item price currency is not a token", async () => {
+          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInEth");
+        });
+
+        it("reverts if listing has expired", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          const blockTimestamp: number = await getBlockTimestamp();
+          await network.provider.send("evm_increaseTime", [
+            blockTimestamp + 3600,
+          ]);
+          await network.provider.send("evm_mine");
+
+          await expect(
+            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ListingExpired");
+        });
+
+        it("reverts if buyer is seller", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__CannotBuyOwnNFT");
+        });
+
+        it("reverts if Unit is not approved to spend tokens", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          await expect(
+            unit
+              .connect(user_1)
+              .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
+        });
+
+        it("deletes listing, transfers nft to caller, transfers token to Unit, records earnings and fees", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          const prevUnitDaiBal: BigNumber = await dai.balanceOf(unit.address);
+          const prevUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
+          const prevSellerEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            ETH_ADDRESS
+          );
+
+          await dai.transfer(user_1.address, ONE_ETH);
+
+          await dai.connect(user_1).approve(unit.address, ONE_ETH);
+
+          await unit
+            .connect(user_1)
+            .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH);
+
+          const listing: DataTypes.ListingStructOutput = await unit.getListing(
+            myNFT.address,
+            0
+          );
+          const currentUnitDaiBal: BigNumber = await dai.balanceOf(
+            unit.address
+          );
+          const currentUnitFees: BigNumber = await unit.getFees(dai.address);
+          const currentSellerEarnings: BigNumber = await unit.getEarnings(
+            mocksDeployer.address,
+            dai.address
+          );
+
+          expect(listing.price).to.eq(0);
+          expect(await myNFT.ownerOf(0)).to.eq(user_1.address);
+          expect(currentUnitDaiBal).to.eq(prevUnitDaiBal.add(ONE_ETH));
+
+          const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
+
+          expect(currentSellerEarnings).to.eq(
+            prevSellerEarnings.add(expectedEarnings)
+          );
+          expect(currentUnitFees).to.eq(prevUnitFees.add(ONE_ETH.div(100))); // 1% fee
+        });
+
+        it("emits an event", async () => {
+          await listItemWithToken(
+            myNFT.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          await dai.transfer(user_1.address, ONE_ETH);
+
+          await dai.connect(user_1).approve(unit.address, ONE_ETH);
+
+          await expect(
+            unit
+              .connect(user_1)
+              .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+          )
+            .to.emit(unit, "ItemBought")
+            .withArgs(user_1.address, myNFT.address, 0, dai.address, ONE_ETH);
         });
       });
     });

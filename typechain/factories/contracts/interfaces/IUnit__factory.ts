@@ -70,6 +70,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "Unit__InvalidAmount",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "Unit__InvalidDeadline",
     type: "error",
   },
@@ -92,11 +97,6 @@ const _abi = [
   {
     inputs: [],
     name: "Unit__ItemDeadlineExceeded",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "Unit__ItemDeadlineReached",
     type: "error",
   },
   {
@@ -182,6 +182,11 @@ const _abi = [
       },
     ],
     name: "Unit__ItemPriceInToken",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ListingExpired",
     type: "error",
   },
   {

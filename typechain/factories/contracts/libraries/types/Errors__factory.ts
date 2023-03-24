@@ -70,6 +70,11 @@ const _abi = [
   },
   {
     inputs: [],
+    name: "Unit__InvalidAmount",
+    type: "error",
+  },
+  {
+    inputs: [],
     name: "Unit__InvalidDeadline",
     type: "error",
   },
@@ -92,11 +97,6 @@ const _abi = [
   {
     inputs: [],
     name: "Unit__ItemDeadlineExceeded",
-    type: "error",
-  },
-  {
-    inputs: [],
-    name: "Unit__ItemDeadlineReached",
     type: "error",
   },
   {
@@ -182,6 +182,11 @@ const _abi = [
       },
     ],
     name: "Unit__ItemPriceInToken",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "Unit__ListingExpired",
     type: "error",
   },
   {
@@ -322,7 +327,7 @@ const _abi = [
 ];
 
 const _bytecode =
-  "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea264697066735822122047e286ca9d96e338b0837c6b3594c9ec872655813dfe70330f09bba91417ddaa64736f6c63430008060033";
+  "0x60566050600b82828239805160001a6073146043577f4e487b7100000000000000000000000000000000000000000000000000000000600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220cc779c9277e5d6deeb2b4a4dfc0e9de7a6160ab563500b2567cef792449457a464736f6c63430008060033";
 
 type ErrorsConstructorParams =
   | [signer?: Signer]

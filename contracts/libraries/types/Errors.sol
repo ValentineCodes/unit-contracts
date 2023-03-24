@@ -9,13 +9,14 @@ library Errors {
     error Unit__ZeroAddress();
     error Unit__NotApprovedToSpendNFT();
     error Unit__InsufficientAmount();
+    error Unit__InvalidAmount();
     error Unit__ItemInAuction(address nft, uint256 tokenId);
     error Unit__InvalidDeadline();
     error Unit__ItemPriceInEth(address nft, uint256 tokenId);
     error Unit__ItemPriceInToken(address nft, uint256 tokenId, address token);
     error Unit__InvalidItemToken(address requestedToken, address actualToken);
     error Unit__TokenTransferFailed(address to, address token, uint256 amount);
-    error Unit__ItemDeadlineReached();
+    error Unit__ListingExpired();
     error Unit__NoUpdateRequired();
     error Unit__CannotBuyOwnNFT();
     error Unit__PendingOffer(
