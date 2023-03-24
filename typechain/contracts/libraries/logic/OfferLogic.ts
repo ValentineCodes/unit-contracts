@@ -5,17 +5,10 @@ import type {
   BaseContract,
   BigNumber,
   BigNumberish,
-  BytesLike,
-  CallOverrides,
-  PopulatedTransaction,
   Signer,
   utils,
 } from "ethers";
-import type {
-  FunctionFragment,
-  Result,
-  EventFragment,
-} from "@ethersproject/abi";
+import type { EventFragment } from "@ethersproject/abi";
 import type { Listener, Provider } from "@ethersproject/providers";
 import type {
   TypedEventFilter,
@@ -26,21 +19,7 @@ import type {
 } from "../../../common";
 
 export interface OfferLogicInterface extends utils.Interface {
-  functions: {
-    "MIN_DEADLINE()": FunctionFragment;
-  };
-
-  getFunction(nameOrSignatureOrTopic: "MIN_DEADLINE"): FunctionFragment;
-
-  encodeFunctionData(
-    functionFragment: "MIN_DEADLINE",
-    values?: undefined
-  ): string;
-
-  decodeFunctionResult(
-    functionFragment: "MIN_DEADLINE",
-    data: BytesLike
-  ): Result;
+  functions: {};
 
   events: {
     "OfferAccepted(address,address,uint256,address,uint256)": EventFragment;
@@ -155,15 +134,9 @@ export interface OfferLogic extends BaseContract {
   once: OnEvent<this>;
   removeListener: OnEvent<this>;
 
-  functions: {
-    MIN_DEADLINE(overrides?: CallOverrides): Promise<[BigNumber]>;
-  };
+  functions: {};
 
-  MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
-
-  callStatic: {
-    MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  callStatic: {};
 
   filters: {
     "OfferAccepted(address,address,uint256,address,uint256)"(
@@ -242,11 +215,7 @@ export interface OfferLogic extends BaseContract {
     ): OfferRemovedEventFilter;
   };
 
-  estimateGas: {
-    MIN_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
-  };
+  estimateGas: {};
 
-  populateTransaction: {
-    MIN_DEADLINE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-  };
+  populateTransaction: {};
 }

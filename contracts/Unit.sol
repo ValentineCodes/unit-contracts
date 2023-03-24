@@ -73,10 +73,8 @@ contract Unit is IUnit, Ownable {
         address offerOwner,
         address nft,
         uint256 tokenId
-    ) external view override returns (DataTypes.Offer memory offer) {
-        offer = s_offers[offerOwner][nft][tokenId];
-        if (offer.amount <= 0)
-            revert Unit__OfferDoesNotExist(nft, tokenId, offerOwner);
+    ) external view override returns (DataTypes.Offer memory) {
+        return s_offers[offerOwner][nft][tokenId];
     }
 
     // TO-DO: Batch Listing and Unlisting

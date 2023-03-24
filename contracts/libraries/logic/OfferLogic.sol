@@ -45,8 +45,6 @@ library OfferLogic {
 
     event OfferRemoved(address nft, uint256 tokenId, address offerOwner);
 
-    uint256 public constant MIN_DEADLINE = 1 hours;
-
     function createOffer(
         mapping(address => mapping(uint256 => DataTypes.Listing))
             storage s_listings,
@@ -71,8 +69,8 @@ library OfferLogic {
                 msg.sender,
                 nft,
                 tokenId,
-                token,
-                amount
+                currentOffer.token,
+                currentOffer.amount
             );
         if (amount <= 0) revert Errors.Unit__InsufficientAmount();
 
@@ -84,8 +82,6 @@ library OfferLogic {
 
         if (_deadline == 0 || _deadline > listing.deadline) {
             _deadline = listing.deadline;
-        } else if (deadline < MIN_DEADLINE) {
-            revert Errors.Unit__DeadlineLessThanMinimum(deadline, MIN_DEADLINE);
         }
 
         s_offers[msg.sender][nft][tokenId] = DataTypes.Offer(

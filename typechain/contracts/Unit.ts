@@ -718,9 +718,7 @@ export interface Unit extends BaseContract {
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
-    ): Promise<
-      [DataTypes.OfferStructOutput] & { offer: DataTypes.OfferStructOutput }
-    >;
+    ): Promise<[DataTypes.OfferStructOutput]>;
 
     listItem(
       nft: PromiseOrValue<string>,
