@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { BigNumber } from "ethers";
 import { deployments, ethers, network } from "hardhat";
 import { developmentChains } from "../../helper-hardhat-config";
-import { DAI, ListLogic, MyNFT, Unit } from "../../typechain";
+import { DAI, MyNFT, Unit } from "../../typechain";
 
 import { ZERO_ADDRESS, ETH_ADDRESS } from "../../helpers/constants";
 import { DataTypes } from "../../typechain/contracts/Unit";
@@ -14,43 +14,46 @@ import { DataTypes } from "../../typechain/contracts/Unit";
       const ONE_ETH = ethers.utils.parseEther("1");
       // Contracts
       let unit: Unit;
-      let myNFT: MyNFT;
+      let ogre: MyNFT;
       let dai: DAI;
-      let listLogic: ListLogic;
 
-      // Signers
-      let unitDeployer: SignerWithAddress;
-      let mocksDeployer: SignerWithAddress;
-      let user_1: SignerWithAddress;
+      // Testers / Signers
+      let Valentine: SignerWithAddress;
+      let Ugochukwu: SignerWithAddress;
+      let Orga: SignerWithAddress;
 
       beforeEach(async () => {
-        const signers = await ethers.getSigners();
-        unitDeployer = signers[0];
-        mocksDeployer = signers[1];
-        user_1 = signers[2];
+        const signers: SignerWithAddress[] = await ethers.getSigners();
 
+        // Testers / Signers
+        Valentine = signers[0];
+        Ugochukwu = signers[1];
+        Orga = signers[2];
+
+        // Deploy contracts
         await deployments.fixture(["mocks", "unit"]);
 
         // contracts
-        unit = await ethers.getContract("Unit", mocksDeployer);
-        myNFT = await ethers.getContract("MyNFT", mocksDeployer);
-        dai = await ethers.getContract("DAI", mocksDeployer);
-
-        // libraries
-        listLogic = await ethers.getContract("ListLogic");
+        unit = await ethers.getContract("Unit", Ugochukwu);
+        ogre = await ethers.getContract("MyNFT", Ugochukwu);
+        dai = await ethers.getContract("DAI", Ugochukwu);
       });
 
       /** Helper functions */
+
+      // List item - ETH price only
       const listItem = async (
         nft: string,
         tokenId: number,
         amount: BigNumber,
         deadline: number
       ) => {
-        await myNFT.approve(unit.address, tokenId);
+        // Approve Unit to spend token
+        await ogre.approve(unit.address, tokenId);
         await unit.listItem(nft, tokenId, amount, deadline);
       };
 
+      // List item - Token price only
       const listItemWithToken = async (
         nft: string,
         tokenId: number,
@@ -59,7 +62,8 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         auction: boolean,
         deadline: number
       ) => {
-        await myNFT.approve(unit.address, tokenId);
+        // Approve Unit to spend token
+        await ogre.approve(unit.address, tokenId);
         await unit.listItemWithToken(
           nft,
           tokenId,
@@ -70,6 +74,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         );
       };
 
+      // Program flow to create an offer
       const createOffer = async (
         nft: string,
         tokenId: number,
@@ -77,22 +82,25 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         amount: BigNumber,
         deadline: number
       ): Promise<BigNumber> => {
-        await listItem(myNFT.address, 0, ONE_ETH, 3600);
+        await listItem(ogre.address, 0, ONE_ETH, 3600);
+
         const blockTimestamp = await getBlockTimestamp();
         const listingDeadline = BigNumber.from(blockTimestamp + 3600);
 
-        await dai.transfer(user_1.address, amount);
-        await dai.connect(user_1).approve(unit.address, amount);
+        await dai.transfer(Orga.address, amount);
+        await dai.connect(Orga).approve(unit.address, amount);
+
         await unit
-          .connect(user_1)
+          .connect(Orga)
           .createOffer(nft, tokenId, token, amount, deadline);
 
         return listingDeadline;
       };
 
+      // Program flow to Buy items listed with token price
       const buyItemWithToken = async () => {
         await listItemWithToken(
-          myNFT.address,
+          ogre.address,
           0,
           dai.address,
           ONE_ETH,
@@ -100,11 +108,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           3600
         );
 
-        await dai.transfer(user_1.address, ONE_ETH);
-        await dai.connect(user_1).approve(unit.address, ONE_ETH);
+        await dai.transfer(Orga.address, ONE_ETH);
+        await dai.connect(Orga).approve(unit.address, ONE_ETH);
         await unit
-          .connect(user_1)
-          .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH);
+          .connect(Orga)
+          .buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH);
       };
 
       const getBlockTimestamp = async (): Promise<number> => {
@@ -114,93 +122,60 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         return block.timestamp;
       };
 
-      describe("getListing", () => {
-        it("retrieves item listing", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          const listing = await unit.getListing(myNFT.address, 0);
+      function formatDate(secs: number) {
+        var t = new Date(secs * 1000); // Epoch
+        return t.toLocaleString() + "⏱";
+      }
 
-          expect(listing.seller).to.eq(mocksDeployer.address);
-        });
-      });
-      describe("getEarnings", () => {
-        it("retrieves earnings", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await unit
-            .connect(user_1)
-            .buyItem(myNFT.address, 0, { value: ONE_ETH });
+      /**
+       * @test
+       */
+      describe("💬listItem", () => {
+        it("lists item", async () => {
+          console.log("Approving Unit to spend OGRE🐸...");
+          await ogre.approve(unit.address, 0);
+          console.log("Approved✅");
+          console.log("-------------------------------");
 
-          const earnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
-            ETH_ADDRESS
+          const item = {
+            nft: ogre.address,
+            tokenId: 0,
+            price: ONE_ETH,
+            deadline: 3600,
+          };
+          console.log("Listing item...");
+          console.log("Params: ", {
+            ...item,
+            price: ethers.utils.formatEther(item.price) + " ETH🔷",
+            deadline: item.deadline + " seconds",
+          });
+          await unit.listItem(
+            item.nft,
+            item.tokenId,
+            item.price,
+            item.deadline
           );
-          const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
-
-          expect(earnings).to.eq(expectedEarnings);
-        });
-      });
-      describe("getOffer", () => {
-        it("retrieves user offer", async () => {
-          // await listItem(myNFT.address, 0, ONE_ETH, 3600);
-
-          const offerAmount: BigNumber = ethers.utils.parseEther("1000");
-          const listingDeadline: BigNumber = await createOffer(
-            myNFT.address,
-            0,
-            dai.address,
-            offerAmount,
-            6000
-          );
-
-          const offer: DataTypes.OfferStructOutput = await unit.getOffer(
-            user_1.address,
-            myNFT.address,
-            0
-          );
-
-          expect(offer.amount).to.eq(offerAmount);
-          expect(offer.token).to.eq(dai.address);
-          expect(offer.deadline).to.eq(listingDeadline);
-        });
-      });
-      describe("listItem", () => {
-        it("reverts if item is already listed", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.listItem(myNFT.address, 0, ONE_ETH, 3600)
-          ).to.be.revertedWithCustomError(unit, "Unit__ItemListed");
-        });
-        it("reverts if nft address is ZERO ADDRESS", async () => {
-          await expect(
-            unit.listItem(ZERO_ADDRESS, 0, ONE_ETH, 3600)
-          ).to.be.revertedWithCustomError(unit, "Unit__ZeroAddress");
-        });
-        it("reverts if caller is not nft owner", async () => {
-          await expect(
-            unit.connect(user_1).listItem(myNFT.address, 0, ONE_ETH, 3600)
-          ).to.be.revertedWithCustomError(unit, "Unit__NotOwner");
-        });
-        it("reverts if Unit is not approved to spend NFT", async () => {
-          await expect(
-            unit
-              .connect(mocksDeployer)
-              .listItem(myNFT.address, 0, ONE_ETH, 3600)
-          ).to.be.revertedWithCustomError(unit, "Unit__NotApprovedToSpendNFT");
-        });
-        it("reverts if price is zero", async () => {
-          await myNFT.approve(unit.address, 0);
-          await expect(
-            unit.listItem(myNFT.address, 0, ethers.utils.parseEther("0"), 3600)
-          ).to.be.revertedWithCustomError(unit, "Unit__InsufficientAmount");
-        });
-        it("stores item", async () => {
-          await myNFT.approve(unit.address, 0);
-          await unit.listItem(myNFT.address, 0, ONE_ETH, 3600);
 
           const blockTimestamp: number = await getBlockTimestamp();
 
-          const listing = await unit.getListing(myNFT.address, 0);
-          expect(listing.seller).to.eq(mocksDeployer.address);
-          expect(listing.nft).to.eq(myNFT.address);
+          const listing: DataTypes.ListingStructOutput = await unit.getListing(
+            ogre.address,
+            0
+          );
+
+          console.log("Item listed✅");
+          console.log({
+            seller: listing.seller,
+            nft: listing.nft,
+            tokenId: 0,
+            token: listing.token,
+            price: ethers.utils.formatEther(listing.price) + " ETH🔷",
+            auction: listing.auction,
+            deadline: formatDate(listing.deadline.toNumber()),
+          });
+
+          expect(listing.seller).to.eq(Ugochukwu.address);
+          expect(listing.nft).to.eq(ogre.address);
           expect(listing.tokenId).to.eq(0);
           expect(listing.token).to.eq(ETH_ADDRESS);
           expect(listing.price).to.eq(ONE_ETH);
@@ -210,12 +185,12 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           );
         });
         it("emits an event", async () => {
-          await myNFT.approve(unit.address, 0);
-          await expect(unit.listItem(myNFT.address, 0, ONE_ETH, 3600))
+          await ogre.approve(unit.address, 0);
+          await expect(unit.listItem(ogre.address, 0, ONE_ETH, 3600))
             .to.emit(unit, "ItemListed")
             .withArgs(
-              mocksDeployer.address,
-              myNFT.address,
+              Ugochukwu.address,
+              ogre.address,
               0,
               ETH_ADDRESS,
               ONE_ETH,
@@ -229,36 +204,84 @@ import { DataTypes } from "../../typechain/contracts/Unit";
               }
             );
         });
-      });
-      describe("listItemWithToken", () => {
-        it("reverts if token is zero address", async () => {
+        it("reverts if item is already listed", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.listItemWithToken(
-              myNFT.address,
-              0,
-              ZERO_ADDRESS,
-              ONE_ETH,
-              true,
-              3600
-            )
+            unit.listItem(ogre.address, 0, ONE_ETH, 3600)
+          ).to.be.revertedWithCustomError(unit, "Unit__ItemListed");
+        });
+        it("reverts if nft address is ZERO ADDRESS", async () => {
+          await expect(
+            unit.listItem(ZERO_ADDRESS, 0, ONE_ETH, 3600)
           ).to.be.revertedWithCustomError(unit, "Unit__ZeroAddress");
         });
-        it("stores item", async () => {
-          await myNFT.approve(unit.address, 0);
+        it("reverts if caller is not nft owner", async () => {
+          await expect(
+            unit.connect(Orga).listItem(ogre.address, 0, ONE_ETH, 3600)
+          ).to.be.revertedWithCustomError(unit, "Unit__NotOwner");
+        });
+        it("reverts if Unit is not approved to spend NFT", async () => {
+          await expect(
+            unit.connect(Ugochukwu).listItem(ogre.address, 0, ONE_ETH, 3600)
+          ).to.be.revertedWithCustomError(unit, "Unit__NotApprovedToSpendNFT");
+        });
+        it("reverts if price is zero", async () => {
+          await ogre.approve(unit.address, 0);
+          await expect(
+            unit.listItem(ogre.address, 0, ethers.utils.parseEther("0"), 3600)
+          ).to.be.revertedWithCustomError(unit, "Unit__InsufficientAmount");
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬listItemWithToken", () => {
+        it("lists item", async () => {
+          console.log("Approving Unit to spend OGRE🐸...");
+          await ogre.approve(unit.address, 0);
+          console.log("Approved✅");
+          console.log("---------------------------------");
+          const item = {
+            nft: ogre.address,
+            tokenId: 0,
+            token: dai.address,
+            price: ONE_ETH,
+            auction: true,
+            deadline: 3600,
+          };
+          console.log("Listing item...");
+          console.log("Params: ", {
+            ...item,
+            token: item.token,
+            price: ethers.utils.formatEther(item.price) + " DAI🔶",
+            deadline: item.deadline + " seconds",
+          });
           await unit.listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            true,
-            3600
+            item.nft,
+            item.tokenId,
+            item.token,
+            item.price,
+            item.auction,
+            item.deadline
           );
+          console.log("Item listed✅");
 
           const blockTimestamp: number = await getBlockTimestamp();
 
-          const listing = await unit.getListing(myNFT.address, 0);
-          expect(listing.seller).to.eq(mocksDeployer.address);
-          expect(listing.nft).to.eq(myNFT.address);
+          const listing = await unit.getListing(ogre.address, 0);
+          console.log({
+            seller: listing.seller,
+            nft: listing.nft,
+            tokenId: 0,
+            token: listing.token,
+            price: ethers.utils.formatEther(listing.price) + " DAI🔶",
+            auction: listing.auction,
+            deadline: formatDate(listing.deadline.toNumber()),
+          });
+
+          expect(listing.seller).to.eq(Ugochukwu.address);
+          expect(listing.nft).to.eq(ogre.address);
           expect(listing.tokenId).to.eq(0);
           expect(listing.token).to.eq(dai.address);
           expect(listing.price).to.eq(ONE_ETH);
@@ -268,10 +291,10 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           );
         });
         it("emits an event", async () => {
-          await myNFT.approve(unit.address, 0);
+          await ogre.approve(unit.address, 0);
           await expect(
             unit.listItemWithToken(
-              myNFT.address,
+              ogre.address,
               0,
               dai.address,
               ONE_ETH,
@@ -281,8 +304,8 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           )
             .to.emit(unit, "ItemListed")
             .withArgs(
-              mocksDeployer.address,
-              myNFT.address,
+              Ugochukwu.address,
+              ogre.address,
               0,
               dai.address,
               ONE_ETH,
@@ -296,126 +319,199 @@ import { DataTypes } from "../../typechain/contracts/Unit";
               }
             );
         });
+        it("reverts if token is zero address", async () => {
+          await expect(
+            unit.listItemWithToken(
+              ogre.address,
+              0,
+              ZERO_ADDRESS,
+              ONE_ETH,
+              true,
+              3600
+            )
+          ).to.be.revertedWithCustomError(unit, "Unit__ZeroAddress");
+        });
       });
-      describe("unlistItem", () => {
+
+      /**
+       * @test
+       */
+      describe("💬unlistItem", () => {
         beforeEach(async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
         });
 
-        it("reverts if caller is not item owner", async () => {
-          await expect(
-            unit.connect(user_1).unlistItem(myNFT.address, 0)
-          ).to.be.revertedWithCustomError(unit, "Unit__NotOwner");
-        });
         it("removes item", async () => {
-          await unit.unlistItem(myNFT.address, 0);
-          const listing = await unit.getListing(myNFT.address, 0);
+          await unit.unlistItem(ogre.address, 0);
+          const listing = await unit.getListing(ogre.address, 0);
 
           expect(listing.price.toString()).to.eq("0");
         });
         it("emits an event", async () => {
-          await expect(unit.unlistItem(myNFT.address, 0))
+          await expect(unit.unlistItem(ogre.address, 0))
             .to.emit(unit, "ItemUnlisted")
-            .withArgs(mocksDeployer.address, myNFT.address, 0);
+            .withArgs(Ugochukwu.address, ogre.address, 0);
+        });
+
+        it("reverts if caller is not item owner", async () => {
+          await expect(
+            unit.connect(Orga).unlistItem(ogre.address, 0)
+          ).to.be.revertedWithCustomError(unit, "Unit__NotOwner");
         });
       });
-      describe("updateItemSeller", () => {
+
+      /**
+       * @test
+       */
+      describe("💬updateItemSeller", () => {
+        it("updates seller", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          console.log("Prev seller: ", Ugochukwu.address);
+
+          console.log("Transfering OGRE to", Orga.address);
+          await ogre.transferFrom(Ugochukwu.address, Orga.address, 0);
+
+          console.log("Updating seller...");
+          await unit.updateItemSeller(ogre.address, 0, Orga.address);
+
+          const listing = await unit.getListing(ogre.address, 0);
+          console.log("New seller: ", listing.seller);
+
+          expect(listing.seller).to.eq(Orga.address);
+        });
+
+        it("emits an event", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await ogre.transferFrom(Ugochukwu.address, Orga.address, 0);
+          await expect(unit.updateItemSeller(ogre.address, 0, Orga.address))
+            .to.emit(unit, "ItemSellerUpdated")
+            .withArgs(ogre.address, 0, Ugochukwu.address, Orga.address);
+        });
         it("reverts if new seller is not item owner", async () => {
           await expect(
-            unit.updateItemSeller(myNFT.address, 0, user_1.address)
+            unit.updateItemSeller(ogre.address, 0, Orga.address)
           ).to.revertedWithCustomError(unit, "Unit__NotOwner");
         });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.updateItemSeller(myNFT.address, 0, mocksDeployer.address)
+            unit.updateItemSeller(ogre.address, 0, Ugochukwu.address)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
         it("reverts if new seller is old seller", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.updateItemSeller(myNFT.address, 0, mocksDeployer.address)
+            unit.updateItemSeller(ogre.address, 0, Ugochukwu.address)
           ).to.revertedWithCustomError(unit, "Unit__NoUpdateRequired");
-        });
-
-        it("updates seller", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await myNFT.transferFrom(mocksDeployer.address, user_1.address, 0);
-          await unit.updateItemSeller(myNFT.address, 0, user_1.address);
-
-          const listing = await unit.getListing(myNFT.address, 0);
-          expect(listing.seller).to.eq(user_1.address);
-        });
-
-        it("emits an event", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await myNFT.transferFrom(mocksDeployer.address, user_1.address, 0);
-          await expect(unit.updateItemSeller(myNFT.address, 0, user_1.address))
-            .to.emit(unit, "ItemSellerUpdated")
-            .withArgs(myNFT.address, 0, mocksDeployer.address, user_1.address);
         });
       });
 
-      describe("updateItemPrice", () => {
+      /**
+       * @test
+       */
+      describe("💬updateItemPrice", () => {
         const newPrice = ethers.utils.parseEther("1.5");
-        it("reverts if caller is not item owner", async () => {
-          await expect(
-            unit.connect(user_1).updateItemPrice(myNFT.address, 0, newPrice)
-          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
-        });
-
-        it("reverts if item is not listed", async () => {
-          await expect(
-            unit.updateItemPrice(myNFT.address, 0, newPrice)
-          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
-        });
-
-        it("reverts if price is zero", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.updateItemPrice(myNFT.address, 0, 0)
-          ).to.revertedWithCustomError(unit, "Unit__InsufficientAmount");
-        });
-
-        it("reverts if new price is old price", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.updateItemPrice(myNFT.address, 0, ONE_ETH)
-          ).to.revertedWithCustomError(unit, "Unit__NoUpdateRequired");
-        });
 
         it("updates price", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await unit.updateItemPrice(myNFT.address, 0, newPrice);
-          const listing = await unit.getListing(myNFT.address, 0);
+          console.log(
+            "Prev price: ",
+            ethers.utils.formatEther(ONE_ETH),
+            "ETH🔷"
+          );
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+
+          console.log(
+            "Updating price to ",
+            ethers.utils.formatEther(newPrice),
+            "ETH🔷"
+          );
+          await unit.updateItemPrice(ogre.address, 0, newPrice);
+
+          const listing = await unit.getListing(ogre.address, 0);
+          console.log(
+            "New price: ",
+            ethers.utils.formatEther(newPrice),
+            "ETH🔷"
+          );
+
           expect(listing.price).to.eq(newPrice);
         });
 
         it("emits an event", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(unit.updateItemPrice(myNFT.address, 0, newPrice))
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(unit.updateItemPrice(ogre.address, 0, newPrice))
             .to.emit(unit, "ItemPriceUpdated")
-            .withArgs(myNFT.address, 0, ETH_ADDRESS, ONE_ETH, newPrice);
+            .withArgs(ogre.address, 0, ETH_ADDRESS, ONE_ETH, newPrice);
         });
-      });
-
-      describe("extendItemDeadline", () => {
-        const extraTime = 1200;
         it("reverts if caller is not item owner", async () => {
           await expect(
-            unit.connect(user_1).extendItemDeadline(myNFT.address, 0, extraTime)
+            unit.connect(Orga).updateItemPrice(ogre.address, 0, newPrice)
           ).to.revertedWithCustomError(unit, "Unit__NotOwner");
         });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.extendItemDeadline(myNFT.address, 0, extraTime)
+            unit.updateItemPrice(ogre.address, 0, newPrice)
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+        });
+
+        it("reverts if price is zero", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.updateItemPrice(ogre.address, 0, 0)
+          ).to.revertedWithCustomError(unit, "Unit__InsufficientAmount");
+        });
+
+        it("reverts if new price is old price", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.updateItemPrice(ogre.address, 0, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__NoUpdateRequired");
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬extendItemDeadline", () => {
+        const extraTime = 1200;
+        it("extends deadline", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+
+          const listingA = await unit.getListing(ogre.address, 0);
+          console.log(
+            "Prev deadline: ",
+            formatDate(listingA.deadline.toNumber())
+          );
+
+          const newDeadline = listingA.deadline.add(extraTime).toString();
+          console.log("Extending deadline by ", extraTime, "seconds");
+
+          await unit.extendItemDeadline(ogre.address, 0, extraTime);
+
+          const listingB = await unit.getListing(ogre.address, 0);
+          console.log(
+            "New deadline: ",
+            formatDate(listingB.deadline.toNumber())
+          );
+
+          expect(listingB.deadline.toString()).to.eq(newDeadline);
+        });
+        it("reverts if caller is not item owner", async () => {
+          await expect(
+            unit.connect(Orga).extendItemDeadline(ogre.address, 0, extraTime)
+          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
+        });
+
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.extendItemDeadline(ogre.address, 0, extraTime)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
         it("reverts if new deadline is now or before", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
 
           const blockTimestamp: number = await getBlockTimestamp();
 
@@ -425,126 +521,110 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await network.provider.send("evm_mine");
 
           await expect(
-            unit.extendItemDeadline(myNFT.address, 0, extraTime)
+            unit.extendItemDeadline(ogre.address, 0, extraTime)
           ).to.revertedWithCustomError(unit, "Unit__InvalidDeadline");
         });
       });
 
-      describe("enableAuction", async () => {
-        const newPrice: BigNumber = ethers.utils.parseEther("2.5");
-        it("reverts if caller is not item owner", async () => {
-          await expect(
-            unit.connect(user_1).enableAuction(myNFT.address, 0, newPrice)
-          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
-        });
-
-        it("reverts if item is not listed", async () => {
-          await expect(
-            unit.enableAuction(myNFT.address, 0, newPrice)
-          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
-        });
+      /**
+       * @test
+       */
+      describe("💬enableAuction", async () => {
+        const newPrice: BigNumber = ethers.utils.parseEther("1.5");
 
         it("sets newPrice as starting price if specified and enables auction", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(myNFT.address, 0, newPrice);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await unit.enableAuction(ogre.address, 0, newPrice);
 
-          const listing = await unit.getListing(myNFT.address, 0);
+          const listing = await unit.getListing(ogre.address, 0);
           expect(listing.price).to.eq(newPrice);
           expect(listing.auction).to.eq(true);
         });
 
         it("emits an event", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(unit.enableAuction(myNFT.address, 0, newPrice))
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(unit.enableAuction(ogre.address, 0, newPrice))
             .to.emit(unit, "ItemAuctionEnabled")
-            .withArgs(myNFT.address, 0, newPrice);
+            .withArgs(ogre.address, 0, newPrice);
         });
-      });
-
-      describe("disableAuction", () => {
-        const newPrice: BigNumber = ethers.utils.parseEther("2.5");
         it("reverts if caller is not item owner", async () => {
           await expect(
-            unit.connect(user_1).disableAuction(myNFT.address, 0, newPrice)
+            unit.connect(Orga).enableAuction(ogre.address, 0, newPrice)
           ).to.revertedWithCustomError(unit, "Unit__NotOwner");
         });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.disableAuction(myNFT.address, 0, newPrice)
+            unit.enableAuction(ogre.address, 0, newPrice)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬disableAuction", () => {
+        const newPrice: BigNumber = ethers.utils.parseEther("2.5");
 
         it("sets newPrice as fixed price if specified and disables auction", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(myNFT.address, 0, newPrice);
-          await unit.disableAuction(myNFT.address, 0, newPrice);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await unit.enableAuction(ogre.address, 0, newPrice);
+          await unit.disableAuction(ogre.address, 0, newPrice);
 
-          const listing = await unit.getListing(myNFT.address, 0);
+          const listing = await unit.getListing(ogre.address, 0);
           expect(listing.price).to.eq(newPrice);
           expect(listing.auction).to.eq(false);
         });
 
         it("emits an event", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(myNFT.address, 0, newPrice);
-          await expect(unit.disableAuction(myNFT.address, 0, newPrice))
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await unit.enableAuction(ogre.address, 0, newPrice);
+          await expect(unit.disableAuction(ogre.address, 0, newPrice))
             .to.emit(unit, "ItemAuctionDisabled")
-            .withArgs(myNFT.address, 0, newPrice);
+            .withArgs(ogre.address, 0, newPrice);
+        });
+        it("reverts if caller is not item owner", async () => {
+          await expect(
+            unit.connect(Orga).disableAuction(ogre.address, 0, newPrice)
+          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
+        });
+
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.disableAuction(ogre.address, 0, newPrice)
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
       });
 
+      /**
+       * @test
+       */
       const offerAmount = ethers.utils.parseEther("0.8");
-      describe("createOffer", () => {
-        it("reverts if item is not listed", async () => {
-          await expect(
-            unit.createOffer(myNFT.address, 0, dai.address, offerAmount, 0)
-          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
-        });
-
-        it("reverts if token is zero address", async () => {
-          await expect(
-            unit.createOffer(myNFT.address, 0, ZERO_ADDRESS, offerAmount, 0)
-          ).to.revertedWithCustomError(unit, "Unit__ZeroAddress");
-        });
-
-        it("reverts if amount is zero", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.createOffer(myNFT.address, 0, dai.address, 0, 0)
-          ).to.revertedWithCustomError(unit, "Unit__InsufficientAmount");
-        });
-
-        it("reverts if caller has pending offer", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 0);
-          await expect(
-            unit
-              .connect(user_1)
-              .createOffer(myNFT.address, 0, dai.address, offerAmount, 0)
-          ).to.revertedWithCustomError(unit, "Unit__PendingOffer");
-        });
-
-        it("reverts if Unit is not approved to spend tokens", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.createOffer(myNFT.address, 0, dai.address, offerAmount, 0)
-          ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
-        });
-
-        it("stores offer", async () => {
+      describe("💬createOffer", () => {
+        it("creates offer", async () => {
+          console.log("Item listed✅");
+          console.log("Approving Unit to spend tokens...");
+          console.log("Creating offer with Dai token...");
           const listingDeadline: BigNumber = await createOffer(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             offerAmount,
             0
           );
+          console.log("Offer created✅");
 
           const offer: DataTypes.OfferStructOutput = await unit.getOffer(
-            user_1.address,
-            myNFT.address,
+            Orga.address,
+            ogre.address,
             0
           );
+
+          console.log("Offer: ", {
+            token: offer.token,
+            amount: ethers.utils.formatEther(offer.amount) + " DAI🔶",
+            deadline: formatDate(offer.deadline.toNumber()),
+          });
 
           expect(offer.token).to.eq(dai.address);
           expect(offer.amount).to.eq(offerAmount);
@@ -553,19 +633,28 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
         it("increases listing deadline by an hour", async () => {
           const listingDeadline: BigNumber = await createOffer(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             offerAmount,
             0
           );
+          console.log(
+            "Prev deadline: ",
+            formatDate(listingDeadline.toNumber())
+          );
 
-          const listing = await unit.getListing(myNFT.address, 0);
+          const listing = await unit.getListing(ogre.address, 0);
+
+          console.log(
+            "New deadline: ",
+            formatDate(listingDeadline.add(3600).toNumber())
+          );
           expect(listing.deadline).to.eq(listingDeadline.add(3600));
         });
 
         it("emits an event", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           const blockTimestamp = await getBlockTimestamp();
           const listingDeadline: BigNumber = BigNumber.from(
             blockTimestamp + 3600
@@ -574,68 +663,91 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await dai.approve(unit.address, offerAmount);
 
           await expect(
-            unit.createOffer(myNFT.address, 0, dai.address, offerAmount, 0)
+            unit.createOffer(ogre.address, 0, dai.address, offerAmount, 0)
           )
             .to.emit(unit, "OfferCreated")
             .withArgs(
-              mocksDeployer.address,
-              myNFT.address,
+              Ugochukwu.address,
+              ogre.address,
               0,
               dai.address,
               offerAmount,
               listingDeadline
             );
         });
-      });
-
-      describe("acceptOffer", () => {
-        it("reverts if caller is not item owner", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 0);
-          await expect(
-            unit.connect(user_1).acceptOffer(user_1.address, myNFT.address, 0)
-          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
-        });
-
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.acceptOffer(user_1.address, myNFT.address, 0)
+            unit.createOffer(ogre.address, 0, dai.address, offerAmount, 0)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
-        it("reverts if offer does not exist", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+        it("reverts if token is zero address", async () => {
           await expect(
-            unit.acceptOffer(user_1.address, myNFT.address, 0)
-          ).to.revertedWithCustomError(unit, "Unit__OfferDoesNotExist");
+            unit.createOffer(ogre.address, 0, ZERO_ADDRESS, offerAmount, 0)
+          ).to.revertedWithCustomError(unit, "Unit__ZeroAddress");
         });
 
-        it("reverts if offer has expired", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
-          const blockTimestamp: number = await getBlockTimestamp();
-          await network.provider.send("evm_increaseTime", [
-            blockTimestamp + 1200,
-          ]);
-          await network.provider.send("evm_mine");
-
+        it("reverts if amount is zero", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.acceptOffer(user_1.address, myNFT.address, 0)
-          ).to.revertedWithCustomError(unit, "Unit__OfferExpired");
+            unit.createOffer(ogre.address, 0, dai.address, 0, 0)
+          ).to.revertedWithCustomError(unit, "Unit__InsufficientAmount");
         });
 
+        it("reverts if caller has pending offer", async () => {
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 0);
+          await expect(
+            unit
+              .connect(Orga)
+              .createOffer(ogre.address, 0, dai.address, offerAmount, 0)
+          ).to.revertedWithCustomError(unit, "Unit__PendingOffer");
+        });
+
+        it("reverts if Unit is not approved to spend tokens", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.createOffer(ogre.address, 0, dai.address, offerAmount, 0)
+          ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬acceptOffer", () => {
         it("deletes listing, transfers nft to offer owner, transfers offer to Unit, records earnings and fees", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
+          console.log("Offer created✅");
+          console.log("Offer: ", {
+            owner: Orga.address,
+            amount: ethers.utils.formatEther(offerAmount) + " DAI🔶",
+          });
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
 
           const prevUnitDaiBal: BigNumber = await dai.balanceOf(unit.address);
           const prevUnitFees: BigNumber = await unit.getFees(dai.address);
           const prevSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
+          const prevOgreOwner = await ogre.ownerOf(0);
 
-          await unit.acceptOffer(user_1.address, myNFT.address, 0);
+          console.log("-----------------------------------------");
+          console.log(
+            "Prev Unit Fees: ",
+            ethers.utils.formatEther(prevUnitFees),
+            "DAI🔶"
+          );
+          console.log(
+            "Prev Seller Earningds: ",
+            ethers.utils.formatEther(prevSellerEarnings),
+            "DAI🔶"
+          );
+          console.log("Prev Ogre Owner: ", prevOgreOwner);
+
+          await unit.acceptOffer(Orga.address, ogre.address, 0);
 
           const listing: DataTypes.ListingStructOutput = await unit.getListing(
-            myNFT.address,
+            ogre.address,
             0
           );
           const currentUnitDaiBal: BigNumber = await dai.balanceOf(
@@ -643,12 +755,25 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           );
           const currentUnitFees: BigNumber = await unit.getFees(dai.address);
           const currentSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
+          const currentOgreOwner = await ogre.ownerOf(0);
+          console.log("-----------------------------------------");
+          console.log(
+            "Current Unit Fees(1%): ",
+            ethers.utils.formatEther(currentUnitFees),
+            "DAI🔶"
+          );
+          console.log(
+            "Current Seller Earningds: ",
+            ethers.utils.formatEther(currentSellerEarnings),
+            "DAI🔶"
+          );
+          console.log("Current Ogre Owner: ", currentOgreOwner);
 
           expect(listing.price).to.eq(0);
-          expect(await myNFT.ownerOf(0)).to.eq(user_1.address);
+          expect(currentOgreOwner).to.eq(Orga.address);
           expect(currentUnitDaiBal).to.eq(prevUnitDaiBal.add(offerAmount));
           expect(currentUnitFees).to.eq(prevUnitFees.add(offerAmount.div(100)));
           expect(currentSellerEarnings).to.eq(
@@ -657,42 +782,101 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         });
 
         it("emits an event", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
 
-          await expect(unit.acceptOffer(user_1.address, myNFT.address, 0))
+          await expect(unit.acceptOffer(Orga.address, ogre.address, 0))
             .to.emit(unit, "OfferAccepted")
-            .withArgs(
-              user_1.address,
-              myNFT.address,
-              0,
-              dai.address,
-              offerAmount
-            );
+            .withArgs(Orga.address, ogre.address, 0, dai.address, offerAmount);
         });
-      });
-
-      describe("extendOfferDeadline", async () => {
-        const extraTime = 1200;
+        it("reverts if caller is not item owner", async () => {
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 0);
+          await expect(
+            unit.connect(Orga).acceptOffer(Orga.address, ogre.address, 0)
+          ).to.revertedWithCustomError(unit, "Unit__NotOwner");
+        });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit
-              .connect(user_1)
-              .extendOfferDeadline(myNFT.address, 0, extraTime)
+            unit.acceptOffer(Orga.address, ogre.address, 0)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
         it("reverts if offer does not exist", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit
-              .connect(user_1)
-              .extendOfferDeadline(myNFT.address, 0, extraTime)
+            unit.acceptOffer(Orga.address, ogre.address, 0)
+          ).to.revertedWithCustomError(unit, "Unit__OfferDoesNotExist");
+        });
+
+        it("reverts if offer has expired", async () => {
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
+          const blockTimestamp: number = await getBlockTimestamp();
+          await network.provider.send("evm_increaseTime", [
+            blockTimestamp + 1200,
+          ]);
+          await network.provider.send("evm_mine");
+
+          await expect(
+            unit.acceptOffer(Orga.address, ogre.address, 0)
+          ).to.revertedWithCustomError(unit, "Unit__OfferExpired");
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬extendOfferDeadline", async () => {
+        const extraTime = 1200;
+
+        it("updates deadline", async () => {
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
+          const oldDeadline: BigNumber = (
+            await unit.getOffer(Orga.address, ogre.address, 0)
+          ).deadline;
+
+          await unit
+            .connect(Orga)
+            .extendOfferDeadline(ogre.address, 0, extraTime);
+          const newDeadline: BigNumber = (
+            await unit.getOffer(Orga.address, ogre.address, 0)
+          ).deadline;
+
+          expect(newDeadline).to.eq(oldDeadline.add(extraTime));
+        });
+
+        it("emits an event", async () => {
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
+          const oldDeadline: BigNumber = (
+            await unit.getOffer(Orga.address, ogre.address, 0)
+          ).deadline;
+
+          await expect(
+            unit.connect(Orga).extendOfferDeadline(ogre.address, 0, extraTime)
+          )
+            .to.emit(unit, "OfferDeadlineExtended")
+            .withArgs(
+              Orga.address,
+              ogre.address,
+              0,
+              oldDeadline,
+              oldDeadline.add(extraTime)
+            );
+        });
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.connect(Orga).extendOfferDeadline(ogre.address, 0, extraTime)
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+        });
+
+        it("reverts if offer does not exist", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.connect(Orga).extendOfferDeadline(ogre.address, 0, extraTime)
           ).to.revertedWithCustomError(unit, "Unit__OfferDoesNotExist");
         });
 
         it("reverts if new deadline is now or before", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
           const blockTimestamp: number = await getBlockTimestamp();
           await network.provider.send("evm_increaseTime", [
             blockTimestamp + 7200,
@@ -700,71 +884,22 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await network.provider.send("evm_mine");
 
           await expect(
-            unit
-              .connect(user_1)
-              .extendOfferDeadline(myNFT.address, 0, extraTime)
+            unit.connect(Orga).extendOfferDeadline(ogre.address, 0, extraTime)
           ).to.revertedWithCustomError(unit, "Unit__InvalidDeadline");
-        });
-
-        it("updates deadline", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
-          const oldDeadline: BigNumber = (
-            await unit.getOffer(user_1.address, myNFT.address, 0)
-          ).deadline;
-
-          await unit
-            .connect(user_1)
-            .extendOfferDeadline(myNFT.address, 0, extraTime);
-          const newDeadline: BigNumber = (
-            await unit.getOffer(user_1.address, myNFT.address, 0)
-          ).deadline;
-
-          expect(newDeadline).to.eq(oldDeadline.add(extraTime));
-        });
-
-        it("emits an event", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
-          const oldDeadline: BigNumber = (
-            await unit.getOffer(user_1.address, myNFT.address, 0)
-          ).deadline;
-
-          await expect(
-            unit
-              .connect(user_1)
-              .extendOfferDeadline(myNFT.address, 0, extraTime)
-          )
-            .to.emit(unit, "OfferDeadlineExtended")
-            .withArgs(
-              user_1.address,
-              myNFT.address,
-              0,
-              oldDeadline,
-              oldDeadline.add(extraTime)
-            );
         });
       });
 
-      describe("removeOffer", () => {
-        it("reverts if item is not listed", async () => {
-          await expect(
-            unit.connect(user_1).removeOffer(myNFT.address, 0)
-          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
-        });
-
-        it("reverts if offer does not exist", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.connect(user_1).removeOffer(myNFT.address, 0)
-          ).to.revertedWithCustomError(unit, "Unit__OfferDoesNotExist");
-        });
-
+      /**
+       * @test
+       */
+      describe("💬removeOffer", () => {
         it("deletes offer", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
-          await unit.connect(user_1).removeOffer(myNFT.address, 0);
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
+          await unit.connect(Orga).removeOffer(ogre.address, 0);
 
           const offer: DataTypes.OfferStructOutput = await unit.getOffer(
-            user_1.address,
-            myNFT.address,
+            Orga.address,
+            ogre.address,
             0
           );
 
@@ -772,105 +907,87 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         });
 
         it("emits an event", async () => {
-          await createOffer(myNFT.address, 0, dai.address, offerAmount, 1200);
+          await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
 
-          await expect(unit.connect(user_1).removeOffer(myNFT.address, 0))
+          await expect(unit.connect(Orga).removeOffer(ogre.address, 0))
             .to.emit(unit, "OfferRemoved")
-            .withArgs(myNFT.address, 0, user_1.address);
+            .withArgs(ogre.address, 0, Orga.address);
         });
-      });
-
-      describe("buyItem", () => {
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
+            unit.connect(Orga).removeOffer(ogre.address, 0)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
-        it("reverts if item is in auction", async () => {
-          await listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            true,
-            3600
-          );
+        it("reverts if offer does not exist", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
-          ).to.revertedWithCustomError(unit, "Unit__ItemInAuction");
+            unit.connect(Orga).removeOffer(ogre.address, 0)
+          ).to.revertedWithCustomError(unit, "Unit__OfferDoesNotExist");
         });
+      });
 
-        it("reverts if item price currency is not ETH", async () => {
-          await listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            false,
-            3600
-          );
-          await expect(
-            unit.buyItem(myNFT.address, 0, { value: ONE_ETH })
-          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInToken");
-        });
-
-        it("reverts if amount is not item price", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.buyItem(myNFT.address, 0, {
-              value: ethers.utils.parseEther("0.8"),
-            })
-          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
-        });
-
-        it("reverts if listing has expired", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-
-          const blockTimestamp: number = await getBlockTimestamp();
-          await network.provider.send("evm_increaseTime", [
-            blockTimestamp + 3600,
-          ]);
-          await network.provider.send("evm_mine");
-
-          await expect(
-            unit.buyItem(myNFT.address, 0, {
-              value: ONE_ETH,
-            })
-          ).to.revertedWithCustomError(unit, "Unit__ListingExpired");
-        });
-
-        it("reverts if buyer is seller", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.buyItem(myNFT.address, 0, {
-              value: ONE_ETH,
-            })
-          ).to.revertedWithCustomError(unit, "Unit__CannotBuyOwnNFT");
-        });
-
+      /**
+       * @test
+       */
+      describe("💬buyItem", () => {
         it("deletes listing, transfers nft to caller, records earnings and fees", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          console.log("Item listed✅");
+          console.log("Item: ", {
+            owner: Ugochukwu.address,
+            amount: ethers.utils.formatEther(ONE_ETH) + " ETH🔷",
+          });
+          console.log("-------------------------------------");
 
           const prevUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
           const prevSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             ETH_ADDRESS
           );
 
-          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+          console.log("Prev Ogre owner🐸: ", await ogre.ownerOf(0));
+          console.log(
+            "Prev Unit Fees: ",
+            ethers.utils.formatEther(prevUnitFees),
+            " ETH🔷"
+          );
+          console.log(
+            "Prev Seller Earnings: ",
+            ethers.utils.formatEther(prevSellerEarnings),
+            " ETH🔷"
+          );
+          console.log("----------------------------------------");
+
+          console.log("Buying item...");
+          console.log("Buyer:", Orga.address);
+          await unit.connect(Orga).buyItem(ogre.address, 0, {
             value: ONE_ETH,
           });
+          console.log("Item bought✅");
+          console.log("-----------------------------------------");
 
-          const listing = await unit.getListing(myNFT.address, 0);
+          const listing = await unit.getListing(ogre.address, 0);
           const currentUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
           const currentSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             ETH_ADDRESS
+          );
+
+          console.log("Current Ogre owner🐸: ", await ogre.ownerOf(0));
+          console.log(
+            "Current Unit Fees(1%): ",
+            ethers.utils.formatEther(currentUnitFees),
+            " ETH🔷"
+          );
+          console.log(
+            "Current Seller Earnings: ",
+            ethers.utils.formatEther(currentSellerEarnings),
+            " ETH🔷"
           );
 
           expect(listing.price).to.eq(0);
-          expect(await myNFT.ownerOf(0)).to.eq(user_1.address);
+          expect(await ogre.ownerOf(0)).to.eq(Orga.address);
 
           const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
 
@@ -879,37 +996,27 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           );
           expect(currentUnitFees).to.eq(prevUnitFees.add(ONE_ETH.div(100))); // 1% fee
         });
-      });
 
-      describe("buyItemWithToken", () => {
-        it("reverts if item is not listed", async () => {
+        it("emits an event", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
-          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+            unit.connect(Orga).buyItem(ogre.address, 0, {
+              value: ONE_ETH,
+            })
+          )
+            .to.emit(unit, "ItemBought")
+            .withArgs(Orga.address, ogre.address, 0, ETH_ADDRESS, ONE_ETH);
         });
 
-        it("reverts if amount is not item price", async () => {
-          await listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            false,
-            3600
-          );
+        it("reverts if item is not listed", async () => {
           await expect(
-            unit.buyItemWithToken(
-              myNFT.address,
-              0,
-              dai.address,
-              ethers.utils.parseEther("0.8")
-            )
-          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
+            unit.buyItem(ogre.address, 0, { value: ONE_ETH })
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
 
         it("reverts if item is in auction", async () => {
           await listItemWithToken(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             ONE_ETH,
@@ -917,26 +1024,35 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             3600
           );
           await expect(
-            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+            unit.buyItem(ogre.address, 0, { value: ONE_ETH })
           ).to.revertedWithCustomError(unit, "Unit__ItemInAuction");
         });
 
-        it("reverts if item price currency is not a token", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-          await expect(
-            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
-          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInEth");
-        });
-
-        it("reverts if listing has expired", async () => {
+        it("reverts if item price currency is not ETH🔷", async () => {
           await listItemWithToken(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             ONE_ETH,
             false,
             3600
           );
+          await expect(
+            unit.buyItem(ogre.address, 0, { value: ONE_ETH })
+          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInToken");
+        });
+
+        it("reverts if amount is not item price", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.buyItem(ogre.address, 0, {
+              value: ethers.utils.parseEther("0.8"),
+            })
+          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
+        });
+
+        it("reverts if listing has expired", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
 
           const blockTimestamp: number = await getBlockTimestamp();
           await network.provider.send("evm_increaseTime", [
@@ -945,68 +1061,78 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await network.provider.send("evm_mine");
 
           await expect(
-            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+            unit.buyItem(ogre.address, 0, {
+              value: ONE_ETH,
+            })
           ).to.revertedWithCustomError(unit, "Unit__ListingExpired");
         });
 
         it("reverts if buyer is seller", async () => {
-          await listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            false,
-            3600
-          );
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
           await expect(
-            unit.buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+            unit.buyItem(ogre.address, 0, {
+              value: ONE_ETH,
+            })
           ).to.revertedWithCustomError(unit, "Unit__CannotBuyOwnNFT");
         });
+      });
 
-        it("reverts if Unit is not approved to spend tokens", async () => {
-          await listItemWithToken(
-            myNFT.address,
-            0,
-            dai.address,
-            ONE_ETH,
-            false,
-            3600
-          );
-
-          await expect(
-            unit
-              .connect(user_1)
-              .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
-          ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
-        });
-
+      /**
+       * @test
+       */
+      describe("💬buyItemWithToken", () => {
         it("deletes listing, transfers nft to caller, transfers token to Unit, records earnings and fees", async () => {
           await listItemWithToken(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             ONE_ETH,
             false,
             3600
           );
+          console.log("Item listed✅");
+          console.log("Item: ", {
+            owner: Ugochukwu.address,
+            amount: ethers.utils.formatEther(ONE_ETH) + " DAI🔶",
+          });
+          console.log("-------------------------------------");
 
           const prevUnitDaiBal: BigNumber = await dai.balanceOf(unit.address);
           const prevUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
           const prevSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             ETH_ADDRESS
           );
 
-          await dai.transfer(user_1.address, ONE_ETH);
+          console.log("Prev Ogre owner🐸: ", await ogre.ownerOf(0));
+          console.log(
+            "Prev Unit Fees: ",
+            ethers.utils.formatEther(prevUnitFees),
+            " DAI🔶"
+          );
+          console.log(
+            "Prev Seller Earnings: ",
+            ethers.utils.formatEther(prevSellerEarnings),
+            " DAI🔶"
+          );
+          console.log("----------------------------------------");
 
-          await dai.connect(user_1).approve(unit.address, ONE_ETH);
+          await dai.transfer(Orga.address, ONE_ETH);
+
+          await dai.connect(Orga).approve(unit.address, ONE_ETH);
+
+          console.log("Buying item...");
+          console.log("Buyer:", Orga.address);
 
           await unit
-            .connect(user_1)
-            .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH);
+            .connect(Orga)
+            .buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH);
+
+          console.log("Item bought✅");
+          console.log("-----------------------------------------");
 
           const listing: DataTypes.ListingStructOutput = await unit.getListing(
-            myNFT.address,
+            ogre.address,
             0
           );
           const currentUnitDaiBal: BigNumber = await dai.balanceOf(
@@ -1014,12 +1140,24 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           );
           const currentUnitFees: BigNumber = await unit.getFees(dai.address);
           const currentSellerEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
 
+          console.log("Current Ogre owner🐸: ", await ogre.ownerOf(0));
+          console.log(
+            "Current Unit Fees(1%): ",
+            ethers.utils.formatEther(currentUnitFees),
+            " DAI🔶"
+          );
+          console.log(
+            "Current Seller Earnings: ",
+            ethers.utils.formatEther(currentSellerEarnings),
+            " DAI🔶"
+          );
+
           expect(listing.price).to.eq(0);
-          expect(await myNFT.ownerOf(0)).to.eq(user_1.address);
+          expect(await ogre.ownerOf(0)).to.eq(Orga.address);
           expect(currentUnitDaiBal).to.eq(prevUnitDaiBal.add(ONE_ETH));
 
           const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
@@ -1032,7 +1170,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
         it("emits an event", async () => {
           await listItemWithToken(
-            myNFT.address,
+            ogre.address,
             0,
             dai.address,
             ONE_ETH,
@@ -1040,59 +1178,158 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             3600
           );
 
-          await dai.transfer(user_1.address, ONE_ETH);
+          await dai.transfer(Orga.address, ONE_ETH);
 
-          await dai.connect(user_1).approve(unit.address, ONE_ETH);
+          await dai.connect(Orga).approve(unit.address, ONE_ETH);
 
           await expect(
             unit
-              .connect(user_1)
-              .buyItemWithToken(myNFT.address, 0, dai.address, ONE_ETH)
+              .connect(Orga)
+              .buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
           )
             .to.emit(unit, "ItemBought")
-            .withArgs(user_1.address, myNFT.address, 0, dai.address, ONE_ETH);
+            .withArgs(Orga.address, ogre.address, 0, dai.address, ONE_ETH);
+        });
+        it("reverts if item is not listed", async () => {
+          await expect(
+            unit.buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
+        });
+
+        it("reverts if amount is not item price", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(
+              ogre.address,
+              0,
+              dai.address,
+              ethers.utils.parseEther("0.8")
+            )
+          ).to.revertedWithCustomError(unit, "Unit__InvalidAmount");
+        });
+
+        it("reverts if item is in auction", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            true,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemInAuction");
+        });
+
+        it("reverts if item price currency is not a token", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await expect(
+            unit.buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInEth");
+        });
+
+        it("reverts if listing has expired", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          const blockTimestamp: number = await getBlockTimestamp();
+          await network.provider.send("evm_increaseTime", [
+            blockTimestamp + 3600,
+          ]);
+          await network.provider.send("evm_mine");
+
+          await expect(
+            unit.buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__ListingExpired");
+        });
+
+        it("reverts if buyer is seller", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(
+            unit.buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__CannotBuyOwnNFT");
+        });
+
+        it("reverts if Unit is not approved to spend tokens", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+
+          await expect(
+            unit
+              .connect(Orga)
+              .buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH)
+          ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
         });
       });
 
-      describe("withdrawEarnings", () => {
-        it("reverts if caller has no earnings", async () => {
-          await expect(
-            unit.withdrawEarnings(ETH_ADDRESS)
-          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
-        });
-
+      /**
+       * @test
+       */
+      describe("💬withdrawEarnings", () => {
         it("deletes earnings and transfers ETH to caller", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
 
-          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+          await unit.connect(Orga).buyItem(ogre.address, 0, {
             value: ONE_ETH,
           });
 
           const earnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             ETH_ADDRESS
           );
-          console.log("Earnings: ", ethers.utils.formatEther(earnings), "ETH");
+          console.log(
+            "Earnings: ",
+            ethers.utils.formatEther(earnings),
+            "ETH🔷"
+          );
 
-          const prevSellerBal: BigNumber = await mocksDeployer.getBalance();
+          const prevSellerBal: BigNumber = await Ugochukwu.getBalance();
           console.log(
             "Prev Bal: ",
             ethers.utils.formatEther(prevSellerBal),
-            "ETH"
+            "ETH🔷"
           );
 
           await unit.withdrawEarnings(ETH_ADDRESS);
+          console.log("Earnings withdrawn✅");
 
           const currentEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             ETH_ADDRESS
           );
 
-          const currentSellerBal: BigNumber = await mocksDeployer.getBalance();
+          const currentSellerBal: BigNumber = await Ugochukwu.getBalance();
           console.log(
             "Current Bal: ",
             ethers.utils.formatEther(currentSellerBal),
-            "ETH"
+            "ETH🔷"
           );
 
           expect(currentEarnings).to.eq(0);
@@ -1103,35 +1340,40 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await buyItemWithToken();
 
           const earnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
-          console.log("Earnings: ", ethers.utils.formatEther(earnings), "DAI");
+          console.log(
+            "Earnings: ",
+            ethers.utils.formatEther(earnings),
+            "DAI🔶"
+          );
 
           const prevSellerBal: BigNumber = await dai.balanceOf(
-            mocksDeployer.address
+            Ugochukwu.address
           );
 
           console.log(
             "Prev Bal: ",
             ethers.utils.formatEther(prevSellerBal),
-            "DAI"
+            "DAI🔶"
           );
 
           await unit.withdrawEarnings(dai.address);
+          console.log("Earnings withdrawn✅");
 
           const currentEarnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
           const currentSellerBal: BigNumber = await dai.balanceOf(
-            mocksDeployer.address
+            Ugochukwu.address
           );
 
           console.log(
             "Current Bal: ",
             ethers.utils.formatEther(currentSellerBal),
-            "DAI"
+            "DAI🔶"
           );
 
           expect(currentEarnings).to.eq(0);
@@ -1141,85 +1383,86 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         it("emits an event", async () => {
           await buyItemWithToken();
           const earnings: BigNumber = await unit.getEarnings(
-            mocksDeployer.address,
+            Ugochukwu.address,
             dai.address
           );
 
           await expect(unit.withdrawEarnings(dai.address))
             .to.emit(unit, "EarningsWithdrawn")
-            .withArgs(mocksDeployer.address, dai.address, earnings);
+            .withArgs(Ugochukwu.address, dai.address, earnings);
+        });
+        it("reverts if caller has no earnings", async () => {
+          await expect(
+            unit.withdrawEarnings(ETH_ADDRESS)
+          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
         });
       });
 
-      describe("withdrawFees", () => {
-        it("reverts if caller is not Unit owner", async () => {
-          await expect(unit.withdrawFees(ETH_ADDRESS)).to.reverted;
-        });
-        it("reverts if caller has no fee earnings", async () => {
-          await expect(
-            unit.connect(unitDeployer).withdrawFees(ETH_ADDRESS)
-          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
-        });
+      /**
+       * @test
+       */
+      describe("💬withdrawFees", () => {
+        it("if fee is ETH, deletes ETH earnings records and transfers ETH to caller", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
 
-        it("deletes fee earnings and transfers ETH to caller", async () => {
-          await listItem(myNFT.address, 0, ONE_ETH, 3600);
-
-          await unit.connect(user_1).buyItem(myNFT.address, 0, {
+          await unit.connect(Orga).buyItem(ogre.address, 0, {
             value: ONE_ETH,
           });
 
           const fees: BigNumber = await unit.getFees(ETH_ADDRESS);
-          console.log("Fees: ", ethers.utils.formatEther(fees), "ETH");
+          console.log("Fees: ", ethers.utils.formatEther(fees), "ETH🔷");
 
-          const prevSellerBal: BigNumber = await unitDeployer.getBalance();
+          const prevSellerBal: BigNumber = await Valentine.getBalance();
           console.log(
             "Prev Bal: ",
             ethers.utils.formatEther(prevSellerBal),
-            "ETH"
+            "ETH🔷"
           );
 
-          await unit.connect(unitDeployer).withdrawFees(ETH_ADDRESS);
+          await unit.connect(Valentine).withdrawFees(ETH_ADDRESS);
+          console.log("Fees withdrawn✅");
 
           const currentFees: BigNumber = await unit.getFees(ETH_ADDRESS);
 
-          const currentSellerBal: BigNumber = await unitDeployer.getBalance();
+          const currentSellerBal: BigNumber = await Valentine.getBalance();
           console.log(
             "Current Bal: ",
             ethers.utils.formatEther(currentSellerBal),
-            "ETH"
+            "ETH🔷"
           );
 
           expect(currentFees).to.eq(0);
           expect(currentSellerBal).to.greaterThan(prevSellerBal);
         });
 
-        it("deletes fee earnings and transfers token to caller", async () => {
+        it("if fee is token, deletes token earnings records and transfers token to caller", async () => {
           await buyItemWithToken();
 
           const fees: BigNumber = await unit.getFees(dai.address);
-          console.log("Fees: ", ethers.utils.formatEther(fees), "DAI");
+          console.log("Fees: ", ethers.utils.formatEther(fees), "DAI🔶");
 
           const prevSellerBal: BigNumber = await dai.balanceOf(
-            unitDeployer.address
+            Valentine.address
           );
 
           console.log(
             "Prev Bal: ",
             ethers.utils.formatEther(prevSellerBal),
-            "DAI"
+            "DAI🔶"
           );
 
-          await unit.connect(unitDeployer).withdrawFees(dai.address);
+          await unit.connect(Valentine).withdrawFees(dai.address);
+          console.log("Fees withdrawn✅");
 
           const currentFees: BigNumber = await unit.getFees(dai.address);
           const currentSellerBal: BigNumber = await dai.balanceOf(
-            unitDeployer.address
+            Valentine.address
           );
 
           console.log(
             "Current Bal: ",
             ethers.utils.formatEther(currentSellerBal),
-            "DAI"
+            "DAI🔶"
           );
 
           expect(currentFees).to.eq(0);
@@ -1230,9 +1473,75 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await buyItemWithToken();
           const fees: BigNumber = await unit.getFees(dai.address);
 
-          await expect(unit.connect(unitDeployer).withdrawFees(dai.address))
+          await expect(unit.connect(Valentine).withdrawFees(dai.address))
             .to.emit(unit, "FeesWithdrawn")
-            .withArgs(unitDeployer.address, dai.address, fees);
+            .withArgs(Valentine.address, dai.address, fees);
+        });
+        it("reverts if caller is not Unit owner", async () => {
+          await expect(unit.withdrawFees(ETH_ADDRESS)).to.reverted;
+        });
+        it("reverts if caller has no fee earnings", async () => {
+          await expect(
+            unit.connect(Valentine).withdrawFees(ETH_ADDRESS)
+          ).to.revertedWithCustomError(unit, "Unit__ZeroEarnings");
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬getListing", () => {
+        it("retrieves item listing", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          const listing = await unit.getListing(ogre.address, 0);
+
+          expect(listing.seller).to.eq(Ugochukwu.address);
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬getEarnings", () => {
+        it("retrieves earnings", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+          await unit.connect(Orga).buyItem(ogre.address, 0, { value: ONE_ETH });
+
+          const earnings: BigNumber = await unit.getEarnings(
+            Ugochukwu.address,
+            ETH_ADDRESS
+          );
+          const expectedEarnings: BigNumber = ONE_ETH.mul(99).div(100); // with 1% fee off
+
+          expect(earnings).to.eq(expectedEarnings);
+        });
+      });
+
+      /**
+       * @test
+       */
+      describe("💬getOffer", () => {
+        it("retrieves user offer", async () => {
+          // await listItem(ogre.address, 0, ONE_ETH, 3600);
+
+          const offerAmount: BigNumber = ethers.utils.parseEther("1000");
+          const listingDeadline: BigNumber = await createOffer(
+            ogre.address,
+            0,
+            dai.address,
+            offerAmount,
+            6000
+          );
+
+          const offer: DataTypes.OfferStructOutput = await unit.getOffer(
+            Orga.address,
+            ogre.address,
+            0
+          );
+
+          expect(offer.amount).to.eq(offerAmount);
+          expect(offer.token).to.eq(dai.address);
+          expect(offer.deadline).to.eq(listingDeadline);
         });
       });
     });

@@ -152,24 +152,6 @@ interface IUnit {
         uint256 indexed amount
     );
 
-    function getListing(
-        address nft,
-        uint256 tokenId
-    ) external view returns (DataTypes.Listing memory);
-
-    function getEarnings(
-        address seller,
-        address token
-    ) external view returns (uint256);
-
-    function getFees(address token) external view returns (uint256);
-
-    function getOffer(
-        address offerOwner,
-        address nft,
-        uint256 tokenId
-    ) external view returns (DataTypes.Offer memory offer);
-
     function listItem(
         address nft,
         uint256 tokenId,
@@ -252,4 +234,22 @@ interface IUnit {
     function withdrawEarnings(address token) external;
 
     function withdrawFees(address token) external;
+
+    function getListing(
+        address nft,
+        uint256 tokenId
+    ) external view returns (DataTypes.Listing memory);
+
+    function getEarnings(
+        address seller,
+        address token
+    ) external view returns (uint256);
+
+    function getFees(address token) external view returns (uint256);
+
+    function getOffer(
+        address offerOwner,
+        address nft,
+        uint256 tokenId
+    ) external view returns (DataTypes.Offer memory offer);
 }

@@ -72,7 +72,6 @@ export declare namespace DataTypes {
 
 export interface UnitInterface extends utils.Interface {
   functions: {
-    "MIN_BID_DEADLINE()": FunctionFragment;
     "acceptOffer(address,address,uint256)": FunctionFragment;
     "buyItem(address,uint256)": FunctionFragment;
     "buyItemWithToken(address,uint256,address,uint256)": FunctionFragment;
@@ -100,7 +99,6 @@ export interface UnitInterface extends utils.Interface {
 
   getFunction(
     nameOrSignatureOrTopic:
-      | "MIN_BID_DEADLINE"
       | "acceptOffer"
       | "buyItem"
       | "buyItemWithToken"
@@ -126,10 +124,6 @@ export interface UnitInterface extends utils.Interface {
       | "withdrawFees"
   ): FunctionFragment;
 
-  encodeFunctionData(
-    functionFragment: "MIN_BID_DEADLINE",
-    values?: undefined
-  ): string;
   encodeFunctionData(
     functionFragment: "acceptOffer",
     values: [
@@ -275,10 +269,6 @@ export interface UnitInterface extends utils.Interface {
     values: [PromiseOrValue<string>]
   ): string;
 
-  decodeFunctionResult(
-    functionFragment: "MIN_BID_DEADLINE",
-    data: BytesLike
-  ): Result;
   decodeFunctionResult(
     functionFragment: "acceptOffer",
     data: BytesLike
@@ -636,8 +626,6 @@ export interface Unit extends BaseContract {
   removeListener: OnEvent<this>;
 
   functions: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     acceptOffer(
       offerOwner: PromiseOrValue<string>,
       nft: PromiseOrValue<string>,
@@ -785,8 +773,6 @@ export interface Unit extends BaseContract {
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
   };
-
-  MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
 
   acceptOffer(
     offerOwner: PromiseOrValue<string>,
@@ -936,8 +922,6 @@ export interface Unit extends BaseContract {
   ): Promise<ContractTransaction>;
 
   callStatic: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
-
     acceptOffer(
       offerOwner: PromiseOrValue<string>,
       nft: PromiseOrValue<string>,
@@ -1303,8 +1287,6 @@ export interface Unit extends BaseContract {
   };
 
   estimateGas: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<BigNumber>;
-
     acceptOffer(
       offerOwner: PromiseOrValue<string>,
       nft: PromiseOrValue<string>,
@@ -1454,8 +1436,6 @@ export interface Unit extends BaseContract {
   };
 
   populateTransaction: {
-    MIN_BID_DEADLINE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
     acceptOffer(
       offerOwner: PromiseOrValue<string>,
       nft: PromiseOrValue<string>,

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -14,7 +13,6 @@ import {OfferLogic} from "./libraries/logic/OfferLogic.sol";
 import {WithdrawLogic} from "./libraries/logic/WithdrawLogic.sol";
 
 contract Unit is IUnit, Ownable {
-    uint256 public constant MIN_BID_DEADLINE = 1 hours;
     address private constant ETH = address(0);
 
     mapping(address => mapping(uint256 => DataTypes.Listing))
@@ -49,37 +47,8 @@ contract Unit is IUnit, Ownable {
         _;
     }
 
-    function getListing(
-        address nft,
-        uint256 tokenId
-    ) external view override returns (DataTypes.Listing memory) {
-        return s_listings[nft][tokenId];
-    }
-
-    // Zero address => ETH
-    function getEarnings(
-        address seller,
-        address token
-    ) external view override returns (uint256) {
-        return s_earnings[seller][token];
-    }
-
-    // Zero address => ETH
-    function getFees(address token) external view override returns (uint256) {
-        return s_fees[token];
-    }
-
-    function getOffer(
-        address offerOwner,
-        address nft,
-        uint256 tokenId
-    ) external view override returns (DataTypes.Offer memory) {
-        return s_offers[offerOwner][nft][tokenId];
-    }
-
     // TO-DO: Batch Listing and Unlisting
 
-    // TO-DO: Approve Unit to spend NFT
     // Zero deadline => No deadline
     function listItem(
         address nft,
@@ -260,5 +229,33 @@ contract Unit is IUnit, Ownable {
 
     function withdrawFees(address token) external override onlyOwner {
         WithdrawLogic.withdrawFees(s_fees, token);
+    }
+
+    function getListing(
+        address nft,
+        uint256 tokenId
+    ) external view override returns (DataTypes.Listing memory) {
+        return s_listings[nft][tokenId];
+    }
+
+    // Zero address => ETH
+    function getEarnings(
+        address seller,
+        address token
+    ) external view override returns (uint256) {
+        return s_earnings[seller][token];
+    }
+
+    // Zero address => ETH
+    function getFees(address token) external view override returns (uint256) {
+        return s_fees[token];
+    }
+
+    function getOffer(
+        address offerOwner,
+        address nft,
+        uint256 tokenId
+    ) external view override returns (DataTypes.Offer memory) {
+        return s_offers[offerOwner][nft][tokenId];
     }
 }
