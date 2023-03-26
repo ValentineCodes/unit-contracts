@@ -12,7 +12,9 @@ import {BuyLogic} from "./libraries/logic/BuyLogic.sol";
 import {OfferLogic} from "./libraries/logic/OfferLogic.sol";
 import {WithdrawLogic} from "./libraries/logic/WithdrawLogic.sol";
 
-contract Unit is IUnit, Ownable {
+import {CustomErrors} from "./test/CustomErrors.sol";
+
+contract Unit is IUnit, Ownable, CustomErrors {
     address private constant ETH = address(0);
 
     mapping(address => mapping(uint256 => DataTypes.Listing))

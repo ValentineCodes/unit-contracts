@@ -67,7 +67,7 @@ export type ItemAuctionEnabledEventFilter =
   TypedEventFilter<ItemAuctionEnabledEvent>;
 
 export interface ItemDeadlineExtendedEventObject {
-  offerOwner: string;
+  owner: string;
   nft: string;
   tokenId: BigNumber;
   oldDeadline: BigNumber;
@@ -192,14 +192,14 @@ export interface ListLogic extends BaseContract {
     ): ItemAuctionEnabledEventFilter;
 
     "ItemDeadlineExtended(address,address,uint256,uint256,uint256)"(
-      offerOwner?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
       nft?: PromiseOrValue<string> | null,
       tokenId?: PromiseOrValue<BigNumberish> | null,
       oldDeadline?: null,
       newDeadline?: null
     ): ItemDeadlineExtendedEventFilter;
     ItemDeadlineExtended(
-      offerOwner?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
       nft?: PromiseOrValue<string> | null,
       tokenId?: PromiseOrValue<BigNumberish> | null,
       oldDeadline?: null,

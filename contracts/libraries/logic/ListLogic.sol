@@ -24,7 +24,7 @@ library ListLogic {
     );
 
     event ItemDeadlineExtended(
-        address indexed offerOwner,
+        address indexed owner,
         address indexed nft,
         uint256 indexed tokenId,
         uint256 oldDeadline,

@@ -38,6 +38,8 @@ export type { WithdrawLogic } from "./contracts/libraries/logic/WithdrawLogic";
 export { WithdrawLogic__factory } from "./factories/contracts/libraries/logic/WithdrawLogic__factory";
 export type { Errors } from "./contracts/libraries/types/Errors";
 export { Errors__factory } from "./factories/contracts/libraries/types/Errors__factory";
+export type { CustomErrors } from "./contracts/test/CustomErrors";
+export { CustomErrors__factory } from "./factories/contracts/test/CustomErrors__factory";
 export type { DAI } from "./contracts/test/DAI";
 export { DAI__factory } from "./factories/contracts/test/DAI__factory";
 export type { MyNFT } from "./contracts/test/MyNFT";

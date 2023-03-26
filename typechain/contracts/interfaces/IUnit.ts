@@ -418,7 +418,7 @@ export type ItemBoughtEvent = TypedEvent<
 export type ItemBoughtEventFilter = TypedEventFilter<ItemBoughtEvent>;
 
 export interface ItemDeadlineExtendedEventObject {
-  offerOwner: string;
+  owner: string;
   nft: string;
   tokenId: BigNumber;
   oldDeadline: BigNumber;
@@ -635,14 +635,14 @@ export interface IUnit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<ContractTransaction>;
 
@@ -774,14 +774,14 @@ export interface IUnit extends BaseContract {
   extendItemDeadline(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
-    offset: PromiseOrValue<BigNumberish>,
+    extraTime: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
   extendOfferDeadline(
     nft: PromiseOrValue<string>,
     tokenId: PromiseOrValue<BigNumberish>,
-    offset: PromiseOrValue<BigNumberish>,
+    extraTime: PromiseOrValue<BigNumberish>,
     overrides?: Overrides & { from?: PromiseOrValue<string> }
   ): Promise<ContractTransaction>;
 
@@ -911,14 +911,14 @@ export interface IUnit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: CallOverrides
     ): Promise<void>;
 
@@ -1062,14 +1062,14 @@ export interface IUnit extends BaseContract {
     ): ItemBoughtEventFilter;
 
     "ItemDeadlineExtended(address,address,uint256,uint256,uint256)"(
-      offerOwner?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
       nft?: PromiseOrValue<string> | null,
       tokenId?: PromiseOrValue<BigNumberish> | null,
       oldDeadline?: null,
       newDeadline?: null
     ): ItemDeadlineExtendedEventFilter;
     ItemDeadlineExtended(
-      offerOwner?: PromiseOrValue<string> | null,
+      owner?: PromiseOrValue<string> | null,
       nft?: PromiseOrValue<string> | null,
       tokenId?: PromiseOrValue<BigNumberish> | null,
       oldDeadline?: null,
@@ -1258,14 +1258,14 @@ export interface IUnit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<BigNumber>;
 
@@ -1396,14 +1396,14 @@ export interface IUnit extends BaseContract {
     extendItemDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
     extendOfferDeadline(
       nft: PromiseOrValue<string>,
       tokenId: PromiseOrValue<BigNumberish>,
-      offset: PromiseOrValue<BigNumberish>,
+      extraTime: PromiseOrValue<BigNumberish>,
       overrides?: Overrides & { from?: PromiseOrValue<string> }
     ): Promise<PopulatedTransaction>;
 
