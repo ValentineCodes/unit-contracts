@@ -6,6 +6,8 @@
     "chain": "hardhat node",
     "compile": "hardhat compile",
     "deploy": "hardhat deploy --network localhost",
+    "deploy:sepolia": "hardhat deploy --network sepolia",
+    "deploy:mainnet": "hardhat deploy --network mainnet",
     "test": "hardhat test ./test/unit/*.spec.ts --network hardhat",
     "test-staging": "hardhat test ./test/staging/*.spec.ts --network sepolia",
     "lint": "solhint 'contracts/*.sol'",
