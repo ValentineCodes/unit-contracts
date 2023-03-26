@@ -10,7 +10,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
 !developmentChains.includes(network.name)
   ? describe.skip
-  : describe("Unit", async () => {
+  : describe(`Unit: NFT Marketplace`, async () => {
       const ONE_ETH = ethers.utils.parseEther("1");
       // Contracts
       let unit: Unit;
@@ -738,7 +738,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             "DAI🔶"
           );
           console.log(
-            "Prev Seller Earningds: ",
+            "Prev Seller Earnings: ",
             ethers.utils.formatEther(prevSellerEarnings),
             "DAI🔶"
           );
@@ -828,18 +828,24 @@ import { DataTypes } from "../../typechain/contracts/Unit";
       describe("💬extendOfferDeadline", async () => {
         const extraTime = 1200;
 
-        it("updates deadline", async () => {
+        it("extends deadline", async () => {
           await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
           const oldDeadline: BigNumber = (
             await unit.getOffer(Orga.address, ogre.address, 0)
           ).deadline;
 
+          console.log("Prev deadline: ", formatDate(oldDeadline.toNumber()));
+
+          console.log("Extending deadline by ", extraTime, "seconds");
           await unit
             .connect(Orga)
             .extendOfferDeadline(ogre.address, 0, extraTime);
+
           const newDeadline: BigNumber = (
             await unit.getOffer(Orga.address, ogre.address, 0)
           ).deadline;
+
+          console.log("New deadline: ", formatDate(newDeadline.toNumber()));
 
           expect(newDeadline).to.eq(oldDeadline.add(extraTime));
         });
