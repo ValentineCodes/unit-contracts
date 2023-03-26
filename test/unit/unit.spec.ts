@@ -5,7 +5,8 @@ import { deployments, ethers, network } from "hardhat";
 import { developmentChains } from "../../helper-hardhat-config";
 import { DAI, MyNFT, Unit } from "../../typechain";
 
-import { ZERO_ADDRESS, ETH_ADDRESS } from "../../helpers/constants";
+import { ZERO_ADDRESS, ETH_ADDRESS } from "../../utils/constants";
+import { formatDate, formatCurrency } from "../../utils/helperFunctions";
 import { DataTypes } from "../../typechain/contracts/Unit";
 
 !developmentChains.includes(network.name)
@@ -122,11 +123,6 @@ import { DataTypes } from "../../typechain/contracts/Unit";
         return block.timestamp;
       };
 
-      function formatDate(secs: number) {
-        var t = new Date(secs * 1000); // Epoch
-        return t.toLocaleString() + "⏱";
-      }
-
       /**
        * @test
        */
@@ -146,7 +142,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Listing item...");
           console.log("Params: ", {
             ...item,
-            price: ethers.utils.formatEther(item.price) + " ETH🔷",
+            price: formatCurrency(item.price, "ETH🔷"),
             deadline: item.deadline + " seconds",
           });
           await unit.listItem(
@@ -169,7 +165,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             nft: listing.nft,
             tokenId: 0,
             token: listing.token,
-            price: ethers.utils.formatEther(listing.price) + " ETH🔷",
+            price: formatCurrency(listing.price, "ETH🔷"),
             auction: listing.auction,
             deadline: formatDate(listing.deadline.toNumber()),
           });
@@ -254,7 +250,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Params: ", {
             ...item,
             token: item.token,
-            price: ethers.utils.formatEther(item.price) + " DAI🔶",
+            price: formatCurrency(item.price, "DAI🔶"),
             deadline: item.deadline + " seconds",
           });
           await unit.listItemWithToken(
@@ -275,7 +271,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             nft: listing.nft,
             tokenId: 0,
             token: listing.token,
-            price: ethers.utils.formatEther(listing.price) + " DAI🔶",
+            price: formatCurrency(listing.price, "DAI🔶"),
             auction: listing.auction,
             deadline: formatDate(listing.deadline.toNumber()),
           });
@@ -622,7 +618,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
           console.log("Offer: ", {
             token: offer.token,
-            amount: ethers.utils.formatEther(offer.amount) + " DAI🔶",
+            amount: formatCurrency(offer.amount, "DAI🔶"),
             deadline: formatDate(offer.deadline.toNumber()),
           });
 
@@ -719,7 +715,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Offer created✅");
           console.log("Offer: ", {
             owner: Orga.address,
-            amount: ethers.utils.formatEther(offerAmount) + " DAI🔶",
+            amount: formatCurrency(offerAmount, "DAI🔶"),
           });
           await createOffer(ogre.address, 0, dai.address, offerAmount, 1200);
 
@@ -734,13 +730,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("-----------------------------------------");
           console.log(
             "Prev Unit Fees: ",
-            ethers.utils.formatEther(prevUnitFees),
-            "DAI🔶"
+            formatCurrency(prevUnitFees, "DAI🔶")
           );
           console.log(
             "Prev Seller Earnings: ",
-            ethers.utils.formatEther(prevSellerEarnings),
-            "DAI🔶"
+            formatCurrency(prevSellerEarnings, "DAI🔶")
           );
           console.log("Prev Ogre Owner: ", prevOgreOwner);
 
@@ -762,13 +756,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("-----------------------------------------");
           console.log(
             "Current Unit Fees(1%): ",
-            ethers.utils.formatEther(currentUnitFees),
-            "DAI🔶"
+            formatCurrency(currentUnitFees, "DAI🔶")
           );
           console.log(
-            "Current Seller Earningds: ",
-            ethers.utils.formatEther(currentSellerEarnings),
-            "DAI🔶"
+            "Current Seller Earnings: ",
+            formatCurrency(currentSellerEarnings, "DAI🔶")
           );
           console.log("Current Ogre Owner: ", currentOgreOwner);
 
@@ -942,7 +934,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Item listed✅");
           console.log("Item: ", {
             owner: Ugochukwu.address,
-            amount: ethers.utils.formatEther(ONE_ETH) + " ETH🔷",
+            amount: formatCurrency(ONE_ETH, "ETH🔷"),
           });
           console.log("-------------------------------------");
 
@@ -955,13 +947,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Prev Ogre owner🐸: ", await ogre.ownerOf(0));
           console.log(
             "Prev Unit Fees: ",
-            ethers.utils.formatEther(prevUnitFees),
-            " ETH🔷"
+            formatCurrency(prevUnitFees, "ETH🔷")
           );
           console.log(
             "Prev Seller Earnings: ",
-            ethers.utils.formatEther(prevSellerEarnings),
-            " ETH🔷"
+            formatCurrency(prevSellerEarnings, "ETH🔷")
           );
           console.log("----------------------------------------");
 
@@ -983,13 +973,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Current Ogre owner🐸: ", await ogre.ownerOf(0));
           console.log(
             "Current Unit Fees(1%): ",
-            ethers.utils.formatEther(currentUnitFees),
-            " ETH🔷"
+            formatCurrency(currentUnitFees, "ETH🔷")
           );
           console.log(
             "Current Seller Earnings: ",
-            ethers.utils.formatEther(currentSellerEarnings),
-            " ETH🔷"
+            formatCurrency(currentSellerEarnings, "ETH🔷")
           );
 
           expect(listing.price).to.eq(0);
@@ -1099,7 +1087,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Item listed✅");
           console.log("Item: ", {
             owner: Ugochukwu.address,
-            amount: ethers.utils.formatEther(ONE_ETH) + " DAI🔶",
+            amount: formatCurrency(ONE_ETH, "DAI🔶"),
           });
           console.log("-------------------------------------");
 
@@ -1113,13 +1101,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Prev Ogre owner🐸: ", await ogre.ownerOf(0));
           console.log(
             "Prev Unit Fees: ",
-            ethers.utils.formatEther(prevUnitFees),
-            " DAI🔶"
+            formatCurrency(prevUnitFees, "DAI🔶")
           );
           console.log(
             "Prev Seller Earnings: ",
-            ethers.utils.formatEther(prevSellerEarnings),
-            " DAI🔶"
+            formatCurrency(prevSellerEarnings, "DAI🔶")
           );
           console.log("----------------------------------------");
 
@@ -1153,13 +1139,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           console.log("Current Ogre owner🐸: ", await ogre.ownerOf(0));
           console.log(
             "Current Unit Fees(1%): ",
-            ethers.utils.formatEther(currentUnitFees),
-            " DAI🔶"
+            formatCurrency(currentUnitFees, "DAI🔶")
           );
           console.log(
             "Current Seller Earnings: ",
-            ethers.utils.formatEther(currentSellerEarnings),
-            " DAI🔶"
+            formatCurrency(currentSellerEarnings, "DAI🔶")
           );
 
           expect(listing.price).to.eq(0);
@@ -1299,9 +1283,10 @@ import { DataTypes } from "../../typechain/contracts/Unit";
        * @test
        */
       describe("💬withdrawEarnings", () => {
-        it("deletes earnings and transfers ETH to caller", async () => {
+        it("if earnings is ETH, deletes ETH earnings records and transfers ETH to caller", async () => {
           await listItem(ogre.address, 0, ONE_ETH, 3600);
 
+          console.log("Ogre🐸 bought with ", formatCurrency(ONE_ETH, "ETH🔷"));
           await unit.connect(Orga).buyItem(ogre.address, 0, {
             value: ONE_ETH,
           });
@@ -1310,18 +1295,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             Ugochukwu.address,
             ETH_ADDRESS
           );
-          console.log(
-            "Earnings: ",
-            ethers.utils.formatEther(earnings),
-            "ETH🔷"
-          );
+          console.log("Earnings: ", formatCurrency(earnings, "ETH🔷"));
 
           const prevSellerBal: BigNumber = await Ugochukwu.getBalance();
-          console.log(
-            "Prev Bal: ",
-            ethers.utils.formatEther(prevSellerBal),
-            "ETH🔷"
-          );
+          console.log("Prev Bal: ", formatCurrency(prevSellerBal, "ETH🔷"));
+          console.log("--------------------------------------");
 
           await unit.withdrawEarnings(ETH_ADDRESS);
           console.log("Earnings withdrawn✅");
@@ -1334,36 +1312,29 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           const currentSellerBal: BigNumber = await Ugochukwu.getBalance();
           console.log(
             "Current Bal: ",
-            ethers.utils.formatEther(currentSellerBal),
-            "ETH🔷"
+            formatCurrency(currentSellerBal, "ETH🔷")
           );
 
           expect(currentEarnings).to.eq(0);
           expect(currentSellerBal).to.greaterThan(prevSellerBal);
         });
 
-        it("deletes earnings and transfers token to caller", async () => {
+        it("if earnings is token, deletes token earnings records and transfers token to caller", async () => {
+          console.log("Ogre🐸 bought with ", formatCurrency(ONE_ETH, "DAI🔶"));
           await buyItemWithToken();
 
           const earnings: BigNumber = await unit.getEarnings(
             Ugochukwu.address,
             dai.address
           );
-          console.log(
-            "Earnings: ",
-            ethers.utils.formatEther(earnings),
-            "DAI🔶"
-          );
+          console.log("Earnings: ", formatCurrency(earnings, "DAI🔶"));
 
           const prevSellerBal: BigNumber = await dai.balanceOf(
             Ugochukwu.address
           );
 
-          console.log(
-            "Prev Bal: ",
-            ethers.utils.formatEther(prevSellerBal),
-            "DAI🔶"
-          );
+          console.log("Prev Bal: ", formatCurrency(prevSellerBal, "DAI🔶"));
+          console.log("------------------------------------------");
 
           await unit.withdrawEarnings(dai.address);
           console.log("Earnings withdrawn✅");
@@ -1378,8 +1349,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
           console.log(
             "Current Bal: ",
-            ethers.utils.formatEther(currentSellerBal),
-            "DAI🔶"
+            formatCurrency(currentSellerBal, "DAI🔶")
           );
 
           expect(currentEarnings).to.eq(0);
@@ -1416,14 +1386,11 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           });
 
           const fees: BigNumber = await unit.getFees(ETH_ADDRESS);
-          console.log("Fees: ", ethers.utils.formatEther(fees), "ETH🔷");
+          console.log("Fees: ", formatCurrency(fees, "ETH🔷"));
 
           const prevSellerBal: BigNumber = await Valentine.getBalance();
-          console.log(
-            "Prev Bal: ",
-            ethers.utils.formatEther(prevSellerBal),
-            "ETH🔷"
-          );
+          console.log("Prev Bal: ", formatCurrency(prevSellerBal, "ETH🔷"));
+          console.log("------------------------------------------");
 
           await unit.connect(Valentine).withdrawFees(ETH_ADDRESS);
           console.log("Fees withdrawn✅");
@@ -1433,8 +1400,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           const currentSellerBal: BigNumber = await Valentine.getBalance();
           console.log(
             "Current Bal: ",
-            ethers.utils.formatEther(currentSellerBal),
-            "ETH🔷"
+            formatCurrency(currentSellerBal, "ETH🔷")
           );
 
           expect(currentFees).to.eq(0);
@@ -1445,17 +1411,14 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           await buyItemWithToken();
 
           const fees: BigNumber = await unit.getFees(dai.address);
-          console.log("Fees: ", ethers.utils.formatEther(fees), "DAI🔶");
+          console.log("Fees: ", formatCurrency(fees, "DAI🔶"));
 
           const prevSellerBal: BigNumber = await dai.balanceOf(
             Valentine.address
           );
 
-          console.log(
-            "Prev Bal: ",
-            ethers.utils.formatEther(prevSellerBal),
-            "DAI🔶"
-          );
+          console.log("Prev Bal: ", formatCurrency(prevSellerBal, "DAI🔶"));
+          console.log("----------------------------------------");
 
           await unit.connect(Valentine).withdrawFees(dai.address);
           console.log("Fees withdrawn✅");
@@ -1467,8 +1430,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
           console.log(
             "Current Bal: ",
-            ethers.utils.formatEther(currentSellerBal),
-            "DAI🔶"
+            formatCurrency(currentSellerBal, "DAI🔶")
           );
 
           expect(currentFees).to.eq(0);
