@@ -158,7 +158,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             ogre.address,
             0
           );
-
+          console.log("------------------------------------");
           console.log("Item listed✅");
           console.log({
             seller: listing.seller,
@@ -261,6 +261,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             item.auction,
             item.deadline
           );
+          console.log("------------------------------------");
           console.log("Item listed✅");
 
           const blockTimestamp: number = await getBlockTimestamp();
@@ -526,32 +527,55 @@ import { DataTypes } from "../../typechain/contracts/Unit";
        * @test
        */
       describe("💬enableAuction", async () => {
-        const newPrice: BigNumber = ethers.utils.parseEther("1.5");
+        const startingPrice: BigNumber = ethers.utils.parseEther("1.5");
 
-        it("sets newPrice as starting price if specified and enables auction", async () => {
-          await listItem(ogre.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(ogre.address, 0, newPrice);
+        it("sets item price as starting price if specified and enables auction", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await unit.enableAuction(ogre.address, 0, startingPrice);
 
           const listing = await unit.getListing(ogre.address, 0);
-          expect(listing.price).to.eq(newPrice);
+          expect(listing.price).to.eq(startingPrice);
           expect(listing.auction).to.eq(true);
         });
 
-        it("emits an event", async () => {
+        it("only enables auction on items listed with token price", async () => {
           await listItem(ogre.address, 0, ONE_ETH, 3600);
-          await expect(unit.enableAuction(ogre.address, 0, newPrice))
-            .to.emit(unit, "ItemAuctionEnabled")
-            .withArgs(ogre.address, 0, newPrice);
+
+          await expect(
+            unit.enableAuction(ogre.address, 0, startingPrice)
+          ).to.revertedWithCustomError(unit, "Unit__ItemPriceInEth");
         });
+
+        it("emits an event", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            false,
+            3600
+          );
+          await expect(unit.enableAuction(ogre.address, 0, startingPrice))
+            .to.emit(unit, "ItemAuctionEnabled")
+            .withArgs(ogre.address, 0, startingPrice);
+        });
+
         it("reverts if caller is not item owner", async () => {
           await expect(
-            unit.connect(Orga).enableAuction(ogre.address, 0, newPrice)
+            unit.connect(Orga).enableAuction(ogre.address, 0, startingPrice)
           ).to.revertedWithCustomError(unit, "Unit__NotOwner");
         });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.enableAuction(ogre.address, 0, newPrice)
+            unit.enableAuction(ogre.address, 0, startingPrice)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
       });
@@ -560,34 +584,46 @@ import { DataTypes } from "../../typechain/contracts/Unit";
        * @test
        */
       describe("💬disableAuction", () => {
-        const newPrice: BigNumber = ethers.utils.parseEther("2.5");
+        const fixedPrice: BigNumber = ethers.utils.parseEther("2.5");
 
-        it("sets newPrice as fixed price if specified and disables auction", async () => {
-          await listItem(ogre.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(ogre.address, 0, newPrice);
-          await unit.disableAuction(ogre.address, 0, newPrice);
+        it("sets item price as fixed price if specified and disables auction", async () => {
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            true,
+            3600
+          );
+          await unit.disableAuction(ogre.address, 0, fixedPrice);
 
           const listing = await unit.getListing(ogre.address, 0);
-          expect(listing.price).to.eq(newPrice);
+          expect(listing.price).to.eq(fixedPrice);
           expect(listing.auction).to.eq(false);
         });
 
         it("emits an event", async () => {
-          await listItem(ogre.address, 0, ONE_ETH, 3600);
-          await unit.enableAuction(ogre.address, 0, newPrice);
-          await expect(unit.disableAuction(ogre.address, 0, newPrice))
+          await listItemWithToken(
+            ogre.address,
+            0,
+            dai.address,
+            ONE_ETH,
+            true,
+            3600
+          );
+          await expect(unit.disableAuction(ogre.address, 0, fixedPrice))
             .to.emit(unit, "ItemAuctionDisabled")
-            .withArgs(ogre.address, 0, newPrice);
+            .withArgs(ogre.address, 0, fixedPrice);
         });
         it("reverts if caller is not item owner", async () => {
           await expect(
-            unit.connect(Orga).disableAuction(ogre.address, 0, newPrice)
+            unit.connect(Orga).disableAuction(ogre.address, 0, fixedPrice)
           ).to.revertedWithCustomError(unit, "Unit__NotOwner");
         });
 
         it("reverts if item is not listed", async () => {
           await expect(
-            unit.disableAuction(ogre.address, 0, newPrice)
+            unit.disableAuction(ogre.address, 0, fixedPrice)
           ).to.revertedWithCustomError(unit, "Unit__ItemNotListed");
         });
       });
@@ -737,8 +773,9 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             formatCurrency(prevSellerEarnings, "DAI🔶")
           );
           console.log("Prev Ogre Owner: ", prevOgreOwner);
-
+          console.log("-----------------------------------------");
           await unit.acceptOffer(Orga.address, ogre.address, 0);
+          console.log("Offer accepted✅");
 
           const listing: DataTypes.ListingStructOutput = await unit.getListing(
             ogre.address,
@@ -753,7 +790,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             dai.address
           );
           const currentOgreOwner = await ogre.ownerOf(0);
-          console.log("-----------------------------------------");
+
           console.log(
             "Current Unit Fees(1%): ",
             formatCurrency(currentUnitFees, "DAI🔶")
@@ -957,11 +994,13 @@ import { DataTypes } from "../../typechain/contracts/Unit";
 
           console.log("Buying item...");
           console.log("Buyer:", Orga.address);
+
           await unit.connect(Orga).buyItem(ogre.address, 0, {
             value: ONE_ETH,
           });
-          console.log("Item bought✅");
+
           console.log("-----------------------------------------");
+          console.log("Item bought✅");
 
           const listing = await unit.getListing(ogre.address, 0);
           const currentUnitFees: BigNumber = await unit.getFees(ETH_ADDRESS);
@@ -1120,8 +1159,8 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             .connect(Orga)
             .buyItemWithToken(ogre.address, 0, dai.address, ONE_ETH);
 
-          console.log("Item bought✅");
           console.log("-----------------------------------------");
+          console.log("Item bought✅");
 
           const listing: DataTypes.ListingStructOutput = await unit.getListing(
             ogre.address,

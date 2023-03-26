@@ -2,4 +2,3 @@
 /* tslint:disable */
 /* eslint-disable */
 export * as logic from "./logic";
-export * as types from "./types";

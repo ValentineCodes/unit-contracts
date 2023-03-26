@@ -54,6 +54,8 @@ library ListLogic {
 
     event ItemAuctionDisabled(address nft, uint256 tokenId, uint256 fixedPrice);
 
+    address private constant ETH = address(0);
+
     function listItem(
         mapping(address => mapping(uint256 => DataTypes.Listing))
             storage s_listings,
@@ -182,6 +184,9 @@ library ListLogic {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
         if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
+        // Only enable auction on items listed with token price
+        if (listing.token == ETH)
+            revert Errors.Unit__ItemPriceInEth(nft, tokenId);
 
         if (startingPrice == 0 || startingPrice == listing.price) {
             s_listings[nft][tokenId].auction = true;
