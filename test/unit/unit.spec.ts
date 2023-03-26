@@ -766,7 +766,7 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             "DAI🔶"
           );
           console.log(
-            "Current Seller Earningds: ",
+            "Current Seller Earnings: ",
             ethers.utils.formatEther(currentSellerEarnings),
             "DAI🔶"
           );
