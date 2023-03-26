@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 
 import {DataTypes} from "../types/DataTypes.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {Errors} from "../types/Errors.sol";
+import {Errors} from "../../interfaces/Errors.sol";
 
 library ListLogic {
     event ItemListed(
@@ -177,17 +177,17 @@ library ListLogic {
             storage s_listings,
         address nft,
         uint256 tokenId,
-        uint256 newPrice
+        uint256 startingPrice
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
         if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
 
-        if (newPrice == 0 || newPrice == listing.price) {
+        if (startingPrice == 0 || startingPrice == listing.price) {
             s_listings[nft][tokenId].auction = true;
         } else {
             listing.auction = true;
-            listing.price = newPrice;
+            listing.price = startingPrice;
             s_listings[nft][tokenId] = listing;
         }
 
@@ -199,17 +199,17 @@ library ListLogic {
             storage s_listings,
         address nft,
         uint256 tokenId,
-        uint256 newPrice
+        uint256 fixedPrice
     ) external {
         DataTypes.Listing memory listing = s_listings[nft][tokenId];
 
         if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
 
-        if (newPrice == 0 || newPrice == listing.price) {
+        if (fixedPrice == 0 || fixedPrice == listing.price) {
             s_listings[nft][tokenId].auction = false;
         } else {
             listing.auction = false;
-            listing.price = newPrice;
+            listing.price = fixedPrice;
             s_listings[nft][tokenId] = listing;
         }
 

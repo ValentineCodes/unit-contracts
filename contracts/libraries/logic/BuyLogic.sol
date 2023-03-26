@@ -6,7 +6,7 @@ import {DataTypes} from "../types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Helpers} from "../helpers/Helpers.sol";
-import {Errors} from "../types/Errors.sol";
+import {Errors} from "../../interfaces/Errors.sol";
 
 library BuyLogic {
     event ItemBought(

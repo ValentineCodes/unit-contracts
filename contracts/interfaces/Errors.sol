@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.6;
 
-library Errors {
+interface Errors {
     error Unit__ItemListed(address nft, uint256 tokenId);
     error Unit__ItemNotListed(address nft, uint256 tokenId);
     error Unit__NotOwner();

@@ -26,6 +26,8 @@ export type { ERC165 } from "./@openzeppelin/contracts/utils/introspection/ERC16
 export { ERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/ERC165__factory";
 export type { IERC165 } from "./@openzeppelin/contracts/utils/introspection/IERC165";
 export { IERC165__factory } from "./factories/@openzeppelin/contracts/utils/introspection/IERC165__factory";
+export type { Errors } from "./contracts/interfaces/Errors";
+export { Errors__factory } from "./factories/contracts/interfaces/Errors__factory";
 export type { IUnit } from "./contracts/interfaces/IUnit";
 export { IUnit__factory } from "./factories/contracts/interfaces/IUnit__factory";
 export type { BuyLogic } from "./contracts/libraries/logic/BuyLogic";
@@ -36,8 +38,6 @@ export type { OfferLogic } from "./contracts/libraries/logic/OfferLogic";
 export { OfferLogic__factory } from "./factories/contracts/libraries/logic/OfferLogic__factory";
 export type { WithdrawLogic } from "./contracts/libraries/logic/WithdrawLogic";
 export { WithdrawLogic__factory } from "./factories/contracts/libraries/logic/WithdrawLogic__factory";
-export type { Errors } from "./contracts/libraries/types/Errors";
-export { Errors__factory } from "./factories/contracts/libraries/types/Errors__factory";
 export type { CustomErrors } from "./contracts/test/CustomErrors";
 export { CustomErrors__factory } from "./factories/contracts/test/CustomErrors__factory";
 export type { DAI } from "./contracts/test/DAI";

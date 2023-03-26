@@ -4,7 +4,7 @@ pragma solidity ^0.8.6;
 
 import {DataTypes} from "../types/DataTypes.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {Errors} from "../types/Errors.sol";
+import {Errors} from "../../interfaces/Errors.sol";
 
 library WithdrawLogic {
     event EarningsWithdrawn(

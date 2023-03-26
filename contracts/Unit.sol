@@ -5,6 +5,7 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IUnit} from "./interfaces/IUnit.sol";
+import {Errors} from "./interfaces/Errors.sol";
 
 import {DataTypes} from "./libraries/types/DataTypes.sol";
 import {ListLogic} from "./libraries/logic/ListLogic.sol";
@@ -12,9 +13,7 @@ import {BuyLogic} from "./libraries/logic/BuyLogic.sol";
 import {OfferLogic} from "./libraries/logic/OfferLogic.sol";
 import {WithdrawLogic} from "./libraries/logic/WithdrawLogic.sol";
 
-import {CustomErrors} from "./test/CustomErrors.sol";
-
-contract Unit is IUnit, Ownable, CustomErrors {
+contract Unit is IUnit, Ownable, Errors {
     address private constant ETH = address(0);
 
     mapping(address => mapping(uint256 => DataTypes.Listing))
