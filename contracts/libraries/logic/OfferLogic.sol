@@ -73,6 +73,8 @@ library OfferLogic {
                 currentOffer.amount
             );
         if (amount <= 0) revert Errors.Unit__InsufficientAmount();
+        if (listing.seller == msg.sender)
+            revert Errors.Unit__CannotCreateOfferOnOwnItem();
 
         // Unit must be approved to spend token
         if (IERC20(token).allowance(msg.sender, address(this)) < amount)

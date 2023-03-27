@@ -9,7 +9,8 @@ import { ZERO_ADDRESS, ETH_ADDRESS } from "../../utils/constants";
 import { formatDate, formatCurrency } from "../../utils/helperFunctions";
 import { DataTypes } from "../../typechain/contracts/Unit";
 
-!developmentChains.includes(network.name)
+// !developmentChains.includes(network.name)
+network.name !== "hardhat"
   ? describe.skip
   : describe(`Unit: NFT Marketplace`, async () => {
       const ONE_ETH = ethers.utils.parseEther("1");
@@ -692,14 +693,17 @@ import { DataTypes } from "../../typechain/contracts/Unit";
             blockTimestamp + 3600
           );
 
-          await dai.approve(unit.address, offerAmount);
+          await dai.transfer(Orga.address, offerAmount);
+          await dai.connect(Orga).approve(unit.address, offerAmount);
 
           await expect(
-            unit.createOffer(ogre.address, 0, dai.address, offerAmount, 0)
+            unit
+              .connect(Orga)
+              .createOffer(ogre.address, 0, dai.address, offerAmount, 0)
           )
             .to.emit(unit, "OfferCreated")
             .withArgs(
-              Ugochukwu.address,
+              Orga.address,
               ogre.address,
               0,
               dai.address,
@@ -735,10 +739,27 @@ import { DataTypes } from "../../typechain/contracts/Unit";
           ).to.revertedWithCustomError(unit, "Unit__PendingOffer");
         });
 
-        it("reverts if Unit is not approved to spend tokens", async () => {
+        it("reverts if caller is item owner", async () => {
           await listItem(ogre.address, 0, ONE_ETH, 3600);
+
+          await dai.approve(unit.address, offerAmount);
           await expect(
             unit.createOffer(ogre.address, 0, dai.address, offerAmount, 0)
+          ).to.revertedWithCustomError(
+            unit,
+            "Unit__CannotCreateOfferOnOwnItem"
+          );
+        });
+
+        it("reverts if Unit is not approved to spend tokens", async () => {
+          await listItem(ogre.address, 0, ONE_ETH, 3600);
+
+          await dai.transfer(Orga.address, offerAmount);
+
+          await expect(
+            unit
+              .connect(Orga)
+              .createOffer(ogre.address, 0, dai.address, offerAmount, 0)
           ).to.revertedWithCustomError(unit, "Unit__NotApprovedToSpendToken");
         });
       });

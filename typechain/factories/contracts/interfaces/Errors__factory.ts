@@ -16,6 +16,11 @@ const _abi = [
     type: "error",
   },
   {
+    inputs: [],
+    name: "Unit__CannotCreateOfferOnOwnItem",
+    type: "error",
+  },
+  {
     inputs: [
       {
         internalType: "uint256",

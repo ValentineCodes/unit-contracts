@@ -19,6 +19,7 @@ interface Errors {
     error Unit__ListingExpired();
     error Unit__NoUpdateRequired();
     error Unit__CannotBuyOwnNFT();
+    error Unit__CannotCreateOfferOnOwnItem();
     error Unit__PendingOffer(
         address offerOwner,
         address nft,
