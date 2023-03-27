@@ -119,6 +119,8 @@ library ListLogic {
 
         if (listing.price <= 0) revert Errors.Unit__ItemNotListed(nft, tokenId);
         if (oldSeller == newSeller) revert Errors.Unit__NoUpdateRequired();
+        if (IERC721(nft).getApproved(tokenId) != address(this))
+            revert Errors.Unit__NotApprovedToSpendNFT();
 
         s_listings[nft][tokenId].seller = newSeller;
 

@@ -284,6 +284,8 @@ network.name === "hardhat"
           console.log("Transfering OGRE to", Orga.address);
           await ogre.transferFrom(Ugochukwu.address, Orga.address, 1);
 
+          await ogre.connect(Orga).approve(unit.address, 1);
+
           console.log("Updating seller...");
           await expect(unit.updateItemSeller(ogre.address, 1, Orga.address))
             .to.emit(unit, "ItemSellerUpdated")

@@ -369,6 +369,9 @@ network.name !== "hardhat"
           console.log("Transfering OGRE to", Orga.address);
           await ogre.transferFrom(Ugochukwu.address, Orga.address, 0);
 
+          console.log("Approving Unit to spend Ogre🐸...");
+          await ogre.connect(Orga).approve(unit.address, 0);
+
           console.log("Updating seller...");
           await unit.updateItemSeller(ogre.address, 0, Orga.address);
 
@@ -381,6 +384,7 @@ network.name !== "hardhat"
         it("emits an event", async () => {
           await listItem(ogre.address, 0, ONE_ETH, 3600);
           await ogre.transferFrom(Ugochukwu.address, Orga.address, 0);
+          await ogre.connect(Orga).approve(unit.address, 0);
           await expect(unit.updateItemSeller(ogre.address, 0, Orga.address))
             .to.emit(unit, "ItemSellerUpdated")
             .withArgs(ogre.address, 0, Ugochukwu.address, Orga.address);
