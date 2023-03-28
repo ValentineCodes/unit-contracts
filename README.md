@@ -1,6 +1,6 @@
 # 🌛Unit - NFT Marketplace🌜
 
-Unit is a Decentralized NFT Marketplace. It allows NFT owners to list their NFTs for a fixed price or put them up for auction. A seller can also toggle between fixed price listing and auction at any time.
+[Unit](https://sepolia.etherscan.io/address/0x8D211af7002b66D3859565cfca77405c49bD672b) is a Decentralized NFT Marketplace. It allows NFT owners to list their NFTs for a fixed price or put them up for auction. A seller can also toggle between fixed price listing and auction at any time.
 
 ## How it works
 

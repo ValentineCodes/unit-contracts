@@ -15,7 +15,8 @@
     "format": "prettier --write .",
     "coverage": "hardhat coverage --solcoverjs ./.solcover.js",
     "fuzzing": "docker run -it --rm -v $PWD:/src trailofbits/eth-security-toolbox",
-    "clean": "hardhat clean"
+    "clean": "hardhat clean",
+    "verify:sepolia": "hardhat verify --network sepolia"
   },
   "license": "MIT",
   "devDependencies": {

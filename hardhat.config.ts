@@ -51,6 +51,7 @@ const config: HardhatUserConfig = {
       sepolia: ETHERSCAN_API_KEY!,
       mainnet: ETHERSCAN_API_KEY!,
     },
+    customChains: [],
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
