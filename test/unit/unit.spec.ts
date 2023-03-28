@@ -991,7 +991,7 @@ network.name !== "hardhat"
        * @test
        */
       describe("💬buyItem", () => {
-        it("deletes listing, transfers nft to caller, records earnings and fees", async () => {
+        it("transfers nft to caller, records earnings and fees", async () => {
           await listItem(ogre.address, 0, ONE_ETH, 3600);
           console.log("Item listed✅");
           console.log("Item: ", {
@@ -1139,7 +1139,7 @@ network.name !== "hardhat"
        * @test
        */
       describe("💬buyItemWithToken", () => {
-        it("deletes listing, transfers nft to caller, transfers token to Unit, records earnings and fees", async () => {
+        it("transfers nft to caller, transfers token to Unit, records earnings and fees", async () => {
           await listItemWithToken(
             ogre.address,
             0,
