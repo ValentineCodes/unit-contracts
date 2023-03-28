@@ -9,7 +9,7 @@
     "deploy:sepolia": "hardhat deploy --network sepolia",
     "deploy:mainnet": "hardhat deploy --network mainnet",
     "test": "hardhat test ./test/unit/*.spec.ts --network hardhat",
-    "test-staging": "hardhat test ./test/staging/*.spec.ts --network localhost",
+    "test-staging": "hardhat test ./test/staging/*.spec.ts --network sepolia",
     "lint": "solhint 'contracts/*.sol'",
     "lint:fix": "solhint 'contracts/**/*.sol' --fix",
     "format": "prettier --write .",

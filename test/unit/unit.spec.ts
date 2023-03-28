@@ -9,8 +9,7 @@ import { ZERO_ADDRESS, ETH_ADDRESS } from "../../utils/constants";
 import { formatDate, formatCurrency } from "../../utils/helperFunctions";
 import { DataTypes } from "../../typechain/contracts/Unit";
 
-// !developmentChains.includes(network.name)
-network.name !== "hardhat"
+!developmentChains.includes(network.name)
   ? describe.skip
   : describe(`Unit: NFT Marketplace`, async () => {
       const ONE_ETH = ethers.utils.parseEther("1");
